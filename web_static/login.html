@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · AI 辅助协作写作平台</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.login-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.login-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.login-header p {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.login-form {
+  padding: 32px 24px;
+}
+
+.form-group { margin-bottom: 20px; }
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(102,126,234,0.3);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.error-msg {
+  background: #fee;
+  color: #c33;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  display: none;
+}
+
+.error-msg.show { display: block; }
+
+.loading {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+</head>
+<body>
+<div class="login-container">
+  <div class="login-header">
+    <h1>AI 辅助协作写作平台</h1>
+    <p>登录以管理你的写作项目</p>
+  </div>
+
+  <div id="login-tab" class="login-form">
+    <div class="error-msg" id="error-msg"></div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label">用户名</label>
+        <input type="text" class="form-input" id="username" placeholder="请输入用户名" value="admin" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">密码</label>
+        <input type="password" class="form-input" id="password" placeholder="请输入密码" value="123456" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="login-btn">
+        <span class="loading" id="login-loading" style="display:none"></span>
+        登录
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <a href="#" id="to-register" style="color: #667eea; text-decoration: none; font-size: 14px;">
+        没有账号？点击注册
+      </a>
+    </div>
+  </div>
+
+  <div id="register-tab" class="login-form" style="display: none;">
+    <div class="error-msg" id="register-error-msg"></div>
+
+    <form id="register-form">
+      <div class="form-group">
+        <label class="form-label">用户名</label>
+        <input type="text" class="form-input" id="reg-username" placeholder="请输入用户名" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">邮箱</label>
+        <input type="email" class="form-input" id="reg-email" placeholder="请输入邮箱" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">密码</label>
+        <input type="password" class="form-input" id="reg-password" placeholder="请输入密码" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="register-btn">
+        <span class="loading" id="register-loading" style="display:none"></span>
+        注册
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <a href="#" id="to-login" style="color: #667eea; text-decoration: none; font-size: 14px;">
+        已有账号？点击登录
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// 切换登录/注册标签
+document.getElementById('to-register').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('login-tab').style.display = 'none';
+  document.getElementById('register-tab').style.display = 'block';
+});
+
+document.getElementById('to-login').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('register-tab').style.display = 'none';
+  document.getElementById('login-tab').style.display = 'block';
+});
+
+// 登录表单提交
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('login-btn');
+  const loading = document.getElementById('login-loading');
+  const errorEl = document.getElementById('error-msg');
+
+  if (!username || !password) {
+    showError(errorEl, '请填写用户名和密码');
+    return;
+  }
+
+  btn.disabled = true;
+  loading.style.display = 'inline-block';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      localStorage.setItem('session_id', data.session_id);
+      window.location.href = '/';
+    } else {
+      showError(errorEl, data.error || '登录失败，请重试');
+      btn.disabled = false;
+      loading.style.display = 'none';
+    }
+  } catch (err) {
+    showError(errorEl, '网络错误，请稍后重试');
+    btn.disabled = false;
+    loading.style.display = 'none';
+  }
+});
+
+// 注册表单提交
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const btn = document.getElementById('register-btn');
+  const loading = document.getElementById('register-loading');
+  const errorEl = document.getElementById('register-error-msg');
+
+  if (!username || !email || !password) {
+    showError(errorEl, '请填写所有字段');
+    return;
+  }
+
+  if (password.length < 6) {
+    showError(errorEl, '密码长度至少 6 位');
+    return;
+  }
+
+  btn.disabled = true;
+  loading.style.display = 'inline-block';
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      alert('注册成功！现在可以登录了');
+      // 切换到登录标签
+      document.getElementById('register-tab').style.display = 'none';
+      document.getElementById('login-tab').style.display = 'block';
+      // 预填充用户名
+      document.getElementById('username').value = username;
+      document.getElementById('password').value = '';
+    } else {
+      showError(errorEl, data.error || '注册失败，请重试');
+      btn.disabled = false;
+      loading.style.display = 'none';
+    }
+  } catch (err) {
+    showError(errorEl, '网络错误，请稍后重试');
+    btn.disabled = false;
+    loading.style.display = 'none';
+  }
+});
+
+// 显示错误
+function showError(el, msg) {
+  el.textContent = msg;
+  el.classList.add('show');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+{
+  "domains": {
+    "科技": {
+      "name": "科技",
+      "description": "智能手机、AI、数码产品、互联网",
+      "rss_sources": [
+        {
+          "name": "IT之家",
+          "url": "https://www.ithome.com/rss/"
+        },
+        {
+          "name": "36氪",
+          "url": "https://36kr.com/feed"
+        },
+        {
+          "name": "快科技",
+          "url": "https://www.mydrivers.com/"
+        }
+      ],
+      "html_sources": [
+        {
+          "name": "IT之家手机频道",
+          "url": "https://www.ithome.com/mobile/"
+        }
+      ],
+      "search_keywords": ["手机", "AI", "智能手机", "数码", "科技", "互联网", "智能设备", "芯片", "5G"]
+    },
+    "汽车": {
+      "name": "汽车",
+      "description": "新车发布、汽车评测、新能源车、摩托车",
+      "ref_websites": [
+        {"name": "汽车之家", "url": "https://www.autohome.com.cn"},
+        {"name": "太平洋汽车", "url": "https://www.pcauto.com.cn"},
+        {"name": "网上车市", "url": "https://www.cheshi.com"},
+        {"name": "车主之家", "url": "https://www.16888.com"},
+        {"name": "爱卡汽车", "url": "https://www.xcar.com.cn"},
+        {"name": "新浪汽车", "url": "https://auto.sina.com.cn"},
+        {"name": "凤凰网汽车", "url": "https://auto.ifeng.com"},
+        {"name": "第一车网", "url": "https://www.iautos.cn"},
+        {"name": "易车网", "url": "https://www.yiche.com"},
+        {"name": "懂车帝", "url": "https://www.dongchedi.com"}
+      ],
+      "rss_sources": [
+        {
+          "name": "汽车之家",
+          "url": "https://www.autohome.com.cn/news/rss/"
+        },
+        {
+          "name": "懂车帝",
+          "url": "https://www.dongchedi.com/rss/"
+        }
+      ],
+      "html_sources": [
+        {
+          "name": "汽车之家",
+          "url": "https://www.autohome.com.cn/news/"
+        }
+      ],
+      "search_keywords": ["汽车", "新车", "新能源汽车", "电动车", "混动", "汽车评测", "汽车发布", "摩托车", "电动摩托车", "摩友", "机车"]
+    },
+    "财经": {
+      "name": "财经",
+      "description": "股票、基金、理财、经济",
+      "rss_sources": [
+        {
+          "name": "新浪财经",
+          "url": "https://finance.sina.com.cn/roll/index.d.html"
+        },
+        {
+          "name": "东方财富",
+          "url": "https://finance.eastmoney.com/a/cjkx.html"
+        }
+      ],
+      "html_sources": [
+        {
+          "name": "东方财富网",
+          "url": "https://www.eastmoney.com/"
+        }
+      ],
+      "search_keywords": ["股票", "基金", "理财", "经济", "金融", "投资", "股市", "财经"]
+    },
+    "美食": {
+      "name": "美食",
+      "description": "食谱、美食探店、美食文化",
+      "rss_sources": [
+        {
+          "name": "下厨房",
+          "url": "https://www.xiachufang.com/"
+        },
+        {
+          "name": "美食天下",
+          "url": "http://www.meishichina.com/"
+        }
+      ],
+      "html_sources": [
+        {
+          "name": "下厨房",
+          "url": "https://www.xiachufang.com/"
+        }
+      ],
+      "search_keywords": ["美食", "食谱", "菜谱", "烹饪", "美食探店", "美食文化"]
+    },
+    "育儿": {
+      "name": "育儿",
+      "description": "育儿知识、教育、儿童成长",
+      "rss_sources": [
+        {
+          "name": "育儿网",
+          "url": "http://www.yaolan.com/"
+        },
+        {
+          "name": "父母邦",
+          "url": "https://www.fumu.cn/"
+        }
+      ],
+      "html_sources": [
+        {
+          "name": "育儿网",
+          "url": "http://www.yaolan.com/"
+        }
+      ],
+      "search_keywords": ["育儿", "教育", "儿童", "亲子", "成长", "育儿知识"]
+    },
+    "健康": {
+      "name": "健康",
+      "description": "健康知识、医疗、养生",
+      "rss_sources": [
+        {
+          "name": "丁香医生",
+          "url": "https://dxy.com/"
+        },
+        {
+          "name": "健康界",
+          "url": "https://www.cn-healthcare.com/"
+        }
+      ],
+      "html_sources": [
+        {
+          "name": "丁香医生",
+          "url": "https://dxy.com/"
+        }
+      ],
+      "search_keywords": ["健康", "医疗", "养生", "保健", "健康知识"]
+    },
+    "旅游": {
+      "name": "旅游",
+      "description": "旅游攻略、景点推荐、旅行文化",
+      "rss_sources": [
+        {
+          "name": "马蜂窝",
+          "url": "https://www.mafengwo.cn/"
+        },
+        {
+          "name": "携程攻略",
+          "url": "https://you.ctrip.com/"
+        }
+      ],
+      "html_sources": [
+        {
+          "name": "马蜂窝",
+          "url": "https://www.mafengwo.cn/"
+        }
+      ],
+      "search_keywords": ["旅游", "旅行", "攻略", "景点", "旅行文化"]
+    },
+    "其他": {
+      "name": "其他",
+      "description": "通用领域，使用搜索引擎获取",
+      "rss_sources": [],
+      "html_sources": [],
+      "search_keywords": ["热点", "资讯", "新闻"]
+    }
+  }
+}

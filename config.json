@@ -1,0 +1,7 @@
+{
+  "_comment": "AI 大模型配置文件 — 填写后启用 AI 写作功能",
+  "_ai_tip": "推荐 DeepSeek（便宜好用）: https://platform.deepseek.com  也支持 OpenAI、通义千问等兼容接口",
+  "ai_api_key": "sk-test1234567890",
+  "ai_api_base": "https://api.deepseek.com",
+  "ai_model": "deepseek-chat"
+}

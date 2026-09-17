@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>素材库 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<link rel="stylesheet" href="/material_library.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔥</div>
+      <h1>墨锻工坊</h1>
+      <p>AI 辅助内容工作台</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/collaborative" class="nav-item" data-title="协同创作"><span class="icon">📝</span> 协同创作</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/material_library.html" class="nav-item active" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <a href="/settings.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">📦 素材库</div>
+      <div class="topbar-actions">
+        <input type="text" id="search-keyword" class="search-input" placeholder="搜索标题或备注..." oninput="onSearchInput()">
+        <button class="btn btn-primary" onclick="openUploadModal()">⬆️ 上传图片</button>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content material-content">
+      <div class="material-layout">
+        <!-- 分组侧栏 -->
+        <div class="group-sidebar">
+          <div class="group-sidebar-header">
+            <span>分组</span>
+            <button class="btn-icon" id="btn-new-group" title="新建分组">＋</button>
+          </div>
+          <div class="group-list" id="group-list">
+            <div class="group-item active" data-group-id="" onclick="filterByGroup(this)">
+              <span class="group-icon">📁</span>
+              <span class="group-name">全部素材</span>
+            </div>
+            <div class="group-item" data-group-id="0" onclick="filterByGroup(this)">
+              <span class="group-icon">📄</span>
+              <span class="group-name">未分组</span>
+            </div>
+            <!-- JS 动态渲染分组 -->
+          </div>
+        </div>
+
+        <!-- 素材主区 -->
+        <div class="material-main">
+          <!-- 筛选栏 -->
+          <div class="filter-bar">
+            <div class="filter-tags" id="filter-tags">
+              <button class="filter-tag active" data-tag="" onclick="filterByTag(this)">全部</button>
+              <!-- JS 动态渲染标签 -->
+            </div>
+            <div class="filter-info">
+              <span id="material-count">0</span> 个素材
+            </div>
+          </div>
+
+          <!-- 素材网格 -->
+          <div class="material-grid" id="material-grid">
+            <!-- JS 动态渲染 -->
+          </div>
+
+          <div class="material-empty" id="material-empty" style="display:none;">
+            <div class="empty-icon">📦</div>
+            <p>素材库为空</p>
+            <p class="empty-hint">从封面制作收藏图片，或上传本地图片</p>
+            <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">
+              <button class="btn" onclick="openUploadModal()">⬆️ 上传图片</button>
+            </div>
+          </div>
+
+          <!-- 加载更多 -->
+          <div class="load-more" id="load-more" style="display:none;">
+            <button class="btn" onclick="loadMore()">加载更多</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗 -->
+<div class="modal-overlay" id="edit-modal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>编辑素材</h3>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>标题</label>
+        <input type="text" id="edit-title" class="form-input" maxlength="100">
+      </div>
+      <div class="form-group">
+        <label>标签 <span class="optional">（逗号分隔）</span></label>
+        <input type="text" id="edit-tags" class="form-input" placeholder="如：科技,蓝色,简约">
+      </div>
+      <div class="form-group">
+        <label>分组</label>
+        <select id="edit-group" class="form-input">
+          <option value="">未分组</option>
+          <!-- JS 动态渲染 -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label>备注</label>
+        <textarea id="edit-notes" class="form-textarea" rows="3" maxlength="500"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeEditModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 上传弹窗 -->
+<div class="modal-overlay" id="upload-modal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>上传图片</h3>
+      <button class="modal-close" onclick="closeUploadModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-drop-zone" id="upload-drop-zone" onclick="document.getElementById('upload-file').click()">
+        <div class="upload-icon">📤</div>
+        <p>点击选择图片或拖拽到此处</p>
+        <p class="upload-hint">支持 PNG/JPG/GIF/WebP，最大 10MB</p>
+        <input type="file" id="upload-file" accept="image/*" style="display:none;" onchange="onFileSelected(this)">
+      </div>
+      <div id="upload-preview-wrap" style="display:none;margin-top:12px;text-align:center;">
+        <img id="upload-preview" style="max-width:100%;max-height:200px;border-radius:8px;">
+        <button class="btn btn-sm" style="margin-top:8px;" onclick="clearUploadFile()">重新选择</button>
+      </div>
+      <div class="form-group" style="margin-top:16px;">
+        <label>标题 <span class="optional">（可选）</span></label>
+        <input type="text" id="upload-title" class="form-input" maxlength="100" placeholder="留空则使用文件名">
+      </div>
+      <div class="form-group">
+        <label>标签 <span class="optional">（逗号分隔，可选）</span></label>
+        <input type="text" id="upload-tags" class="form-input" placeholder="如：科技,蓝色">
+      </div>
+      <div class="form-group">
+        <label>分组</label>
+        <select id="upload-group" class="form-input">
+          <option value="">未分组</option>
+          <!-- JS 动态渲染 -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label>备注 <span class="optional">（可选）</span></label>
+        <textarea id="upload-notes" class="form-textarea" rows="2" maxlength="500"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeUploadModal()">取消</button>
+      <button class="btn btn-primary" id="upload-btn" onclick="doUpload()">上传</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建分组弹窗 -->
+<div class="modal-overlay" id="group-modal" style="display:none;">
+  <div class="modal-box" style="width:360px;">
+    <div class="modal-header">
+      <h3 id="group-modal-title">新建分组</h3>
+      <button class="modal-close" onclick="closeGroupModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>分组名称</label>
+        <input type="text" id="group-name" class="form-input" maxlength="50" placeholder="输入分组名称">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeGroupModal()">取消</button>
+      <button class="btn btn-primary" id="group-save-btn" onclick="saveGroup()">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 移动到分组弹窗 -->
+<div class="modal-overlay" id="move-modal" style="display:none;">
+  <div class="modal-box" style="width:360px;">
+    <div class="modal-header">
+      <h3>移动到分组</h3>
+      <button class="modal-close" onclick="closeMoveModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="move-group-list" id="move-group-list">
+        <div class="move-group-item" data-group-id="" onclick="selectMoveGroup(this)">
+          <span>📄</span> 未分组
+        </div>
+        <!-- JS 动态渲染 -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeMoveModal()">取消</button>
+      <button class="btn btn-primary" onclick="doMove()">移动</button>
+    </div>
+  </div>
+</div>
+
+<!-- 预览弹窗 -->
+<div class="modal-overlay" id="preview-modal" style="display:none;">
+  <div class="modal-box modal-preview">
+    <div class="modal-header">
+      <h3 id="preview-title">素材预览</h3>
+      <button class="modal-close" onclick="closePreviewModal()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <img id="preview-image" src="" alt="素材预览" style="max-width:100%;max-height:70vh;border-radius:8px;">
+      <div class="preview-meta" id="preview-meta" style="margin-top:12px;font-size:12px;color:var(--text3);"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/material_library.js"></script>
+</body>
+</html>

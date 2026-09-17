@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>创作工作台 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<link rel="stylesheet" href="/collaborative.css">
+<style>
+/* 内容面板（仅保留 collaborative.css 未覆盖的纯布局规则）*/
+/* 创作工作台：内容区少留白、编辑区占满剩余高度 */
+.workbench-content { padding: 16px 18px; min-height: calc(100vh - 60px); }
+.workbench-content .content-split { flex: 1; min-height: calc(100vh - 130px); }
+.content-split-outline { align-self: stretch; }
+.content-split-main { max-height: none; flex: 1; min-height: calc(100vh - 130px); }
+.content-outline-row { display: flex; align-items: center; gap: 8px; }
+
+/* 内容阶段：左右分栏（Word 式导航窗格） */
+.content-split { display: flex; gap: 0; align-items: flex-start; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.content-split-outline { width: 240px; flex-shrink: 0; position: sticky; top: 12px; max-height: calc(100vh - 80px); overflow-y: auto; background: var(--bg2); border-right: 1px solid var(--border); }
+.content-split-main { flex: 1; min-width: 0; max-height: calc(100vh - 80px); overflow-y: auto; background: var(--bg); }
+.content-split-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 10px 12px 0; font-size: 13px; color: var(--text2); font-weight: 600; }
+.content-outline-item { padding: 8px 10px; border-radius: 0; cursor: pointer; border: 1px solid transparent; border-left: 3px solid transparent; display: flex; align-items: center; gap: 6px; transition: background .15s, border-color .15s, color .15s; }
+.content-outline-item:hover { background: var(--bg3); border-left-color: var(--border); }
+.content-outline-item.active { background: rgba(4,120,87,0.08); border-left-color: var(--accent); color: var(--accent); font-weight: 600; }
+.content-outline-item .ci-title { flex: 1; }
+.content-split-main > .content-split-header { padding: 10px 14px 0; }
+.content-split-main > div:last-child { padding: 0 14px 12px; }
+
+/* 大纲导航滚动条（亮色细致） */
+.content-split-outline::-webkit-scrollbar { width: 6px; }
+.content-split-outline::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.content-split-outline::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
+/* ── 排版风格工具栏（固定在内容区顶部）── */
+.typo-toolbar { display: flex; align-items: center; gap: 10px; padding: 7px 14px; border-bottom: 1px solid var(--border); background: var(--bg2); flex-wrap: wrap; position: sticky; top: 0; z-index: 5; }
+.typo-label { font-size: 12px; color: var(--text2); font-weight: 600; white-space: nowrap; }
+.typo-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); }
+.typo-btn { border: none; background: transparent; color: var(--text2); font-size: 12px; padding: 5px 12px; cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
+.typo-btn + .typo-btn { border-left: 1px solid var(--border); }
+.typo-btn:hover { background: var(--bg3); color: var(--text); }
+.typo-btn.active { background: var(--accent); color: #fff; }
+
+/* ── 排版风格（实时预览，通过 #content-sections 类切换，作用于整体编辑框）── */
+/* 默认 */
+#content-sections.typo-default .content-paragraph { font-size: 15px; line-height: 1.75; text-indent: 2em; text-align: left; font-family: inherit; }
+/* 舒展 */
+#content-sections.typo-spacious .content-paragraph { font-size: 17px; line-height: 2.05; text-indent: 2em; text-align: left; }
+/* 紧凑 */
+#content-sections.typo-compact .content-paragraph { font-size: 13px; line-height: 1.5; text-indent: 2em; text-align: left; }
+/* 正式（宋体·两端对齐）*/
+#content-sections.typo-formal .content-paragraph { font-family: 'Songti SC', 'SimSun', 'STSong', 'Source Han Serif SC', serif; font-size: 16px; line-height: 1.85; text-indent: 2em; text-align: justify; }
+/* 古典（楷体·暖色调）*/
+#content-sections.typo-classical .content-paragraph { font-family: 'Kaiti SC', 'STKaiti', 'KaiTi', 'Source Han Serif SC', serif; font-size: 16px; line-height: 1.9; text-indent: 2em; text-align: left; color: #3a2f24; }
+
+/* ── Markdown 预览 ── */
+.content-preview { display: none; padding: 22px 28px; min-height: 240px; color: var(--text); }
+.content-preview.active { display: block; }
+.content-preview h1,.content-preview h2,.content-preview h3,
+.content-preview h4,.content-preview h5,.content-preview h6 {
+  margin: 1.4em 0 0.55em; line-height: 1.3; font-weight: 700;
+}
+.content-preview h1 { font-size: 1.85em; border-bottom: 1px solid var(--border); padding-bottom: .3em; }
+.content-preview h2 { font-size: 1.45em; }
+.content-preview h3 { font-size: 1.2em; }
+.content-preview h4 { font-size: 1.05em; }
+.content-preview p { margin: 0 0 1em; }
+.content-preview ul,.content-preview ol { margin: 0 0 1em; padding-left: 2em; }
+.content-preview li { margin: .25em 0; }
+.content-preview blockquote {
+  margin: 0 0 1em; padding: .5em 1em; border-left: 4px solid var(--accent);
+  background: var(--bg2); color: var(--text2); border-radius: 0 8px 8px 0;
+}
+.content-preview code {
+  background: var(--bg2); padding: .15em .4em; border-radius: 4px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 0.88em;
+}
+.content-preview pre { background: var(--bg2); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0 0 1em; }
+.content-preview pre code { background: none; padding: 0; }
+.content-preview hr { border: none; border-top: 1px solid var(--border); margin: 1.6em 0; }
+.content-preview a { color: var(--accent); text-decoration: none; }
+.content-preview a:hover { text-decoration: underline; }
+.content-preview img { max-width: 100%; }
+/* 预览下的排版风格继承 */
+#content-sections.typo-default .md-preview { font-size: 15px; line-height: 1.75; }
+#content-sections.typo-spacious .md-preview { font-size: 17px; line-height: 2.05; }
+#content-sections.typo-compact .md-preview { font-size: 13px; line-height: 1.5; }
+#content-sections.typo-formal .md-preview { font-family: 'Songti SC','SimSun','STSong','Source Han Serif SC',serif; font-size: 16px; line-height: 1.85; }
+#content-sections.typo-classical .md-preview { font-family: 'Kaiti SC','STKaiti','KaiTi','Source Han Serif SC',serif; font-size: 16px; line-height: 1.9; color: #3a2f24; }
+
+/* ── 编辑/预览切换按钮 ── */
+.typo-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); margin-left: auto; }
+.typo-toggle-btn { border: none; background: transparent; color: var(--text2); font-size: 12px; padding: 5px 14px; cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
+.typo-toggle-btn + .typo-toggle-btn { border-left: 1px solid var(--border); }
+.typo-toggle-btn.active { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔥</div>
+      <h1>墨锻工坊</h1>
+      <p>AI 辅助内容工作台</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/collaborative" class="nav-item" data-title="协同创作"><span class="icon">📝</span> 协同创作</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+            <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <a href="/settings.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">✍️ 创作工作台</div>
+      <div class="topbar-actions">
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content workbench-content">
+      <!-- 创作流程导航（步骤条） -->
+      <div class="card">
+        <div class="step-bar" id="phase-nav">
+          <div class="step" data-phase="topic" onclick="switchPhase('topic')">
+            <div class="step-num">1</div>
+            <div class="step-label">选题</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="step" data-phase="outline" onclick="switchPhase('outline')">
+            <div class="step-num">2</div>
+            <div class="step-label">大纲</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="step" data-phase="content" onclick="switchPhase('content')">
+            <div class="step-num">3</div>
+            <div class="step-label">内容</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 当前阶段内容面板 -->
+      <div id="workbench-panel">
+        <!-- 选题阶段面板 -->
+        <div id="panel-topic" class="phase-panel">
+          <div class="card">
+            <div class="card-title">输入创作想法</div>
+            <p style="color:var(--text2);font-size:13px;margin:0 0 8px;">描述你想写的主题方向，AI 将为你生成 3-5 个候选选题。</p>
+            <textarea id="topic-idea" rows="3" placeholder="输入你的创作想法，例如：介绍 Python 异步编程的常见误区" style="width:100%;box-sizing:border-box;"></textarea>
+            <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button class="btn btn-primary" id="btn-generate-topics" onclick="generateTopics()">生成选题</button>
+              <button class="btn" id="btn-custom-topic" onclick="toggleCustomTopic()">自定义选题</button>
+            </div>
+
+            <!-- 自定义选题表单（默认隐藏） -->
+            <div id="custom-topic-form" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:6px;background:var(--card);">
+              <div style="margin-bottom:8px;">
+                <label style="font-size:12px;color:var(--text2);">标题</label>
+                <input type="text" id="custom-topic-title" placeholder="自定义选题标题" style="width:100%;box-sizing:border-box;">
+              </div>
+              <div style="margin-bottom:8px;">
+                <label style="font-size:12px;color:var(--text2);">描述</label>
+                <textarea id="custom-topic-desc" rows="2" placeholder="一句话描述这个选题" style="width:100%;box-sizing:border-box;"></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="submitCustomTopic()">使用此选题</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">候选选题</div>
+            <div id="topic-cards" class="topic-list">
+              <div class="dash-recent-empty" id="topic-empty-hint">尚未生成选题，输入想法后点击「生成选题」。</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <button class="btn btn-primary" id="btn-confirm-topic" disabled onclick="confirmTopic()">确认选题，进入大纲生成</button>
+            <span id="selected-topic-label" style="margin-left:12px;font-size:13px;color:var(--text2);"></span>
+          </div>
+        </div>
+
+        <!-- 大纲阶段面板 -->
+        <div id="panel-outline" class="phase-panel" style="display:none;">
+          <div class="card" style="background:rgba(4,120,87,0.04);border-color:rgba(4,120,87,0.20);">
+            <div class="card-title">当前选题</div>
+            <div id="outline-topic-title" style="font-weight:600;margin-bottom:4px;"></div>
+            <div id="outline-topic-desc" style="font-size:13px;color:var(--text2);margin-bottom:8px;"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-primary" id="btn-generate-outline" onclick="generateOutline()">生成大纲</button>
+              <button class="btn" id="btn-save-outline" onclick="saveOutline()" disabled title="请先生成大纲再保存">保存大纲</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <span>大纲结构</span>
+              <button class="btn btn-primary" id="btn-lock-outline" onclick="lockOutline()" style="font-size:13px;padding:5px 16px;flex-shrink:0;">生成内容</button>
+            </div>
+            <div id="outline-tree" class="outline-tree">
+              <div class="dash-recent-empty" id="outline-empty-hint">尚未生成大纲，确认选题后点击「生成大纲」。</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;">
+              <button class="btn" id="btn-add-node" onclick="addNode()">＋ 添加节点</button>
+              <button class="btn" id="btn-delete-node" onclick="deleteNode()">－ 删除节点</button>
+              <span id="outline-selected-label" style="font-size:12px;color:var(--text2);"></span>
+            </div>
+            <div style="text-align:center;margin-top:8px;">
+              <span id="outline-locked-tag" style="display:none;font-size:12px;color:var(--accent);">🔒 大纲已锁定（只读）</span>
+            </div>
+          </div>        </div>
+
+        <!-- 内容阶段面板 -->
+        <div id="panel-content" class="phase-panel" style="display:none;">
+          <div class="card">
+            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <span>内容创作</span>
+              <button class="btn btn-primary" id="btn-save-to-history" style="font-size:12px;padding:5px 14px;flex-shrink:0;">保存到历史文章</button>
+            </div>
+            <div style="margin-bottom:12px;">
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;">文章标题</label>
+              <input type="text" id="article-title-input" placeholder="文章标题" style="width:100%;box-sizing:border-box;font-size:16px;font-weight:600;padding:10px 12px;line-height:1.4;">
+            </div>
+            <p style="color:var(--text2);font-size:13px;margin:0 0 10px;">左侧大纲导航窗格，点击章节定位到右侧内容；右侧整体编辑全文，支持 Markdown 语法。</p>
+
+            <div class="content-split">
+              <!-- 左：大纲导航窗格 -->
+              <div class="content-split-outline">
+                <div class="content-split-header">
+                  <span>大纲章节</span>
+                  <button class="btn btn-primary" id="btn-generate-all-content" style="font-size:12px;padding:4px 10px;">全部生成</button>
+                </div>
+                <div id="content-outline-list" class="outline-tree">
+                  <div class="dash-recent-empty" id="content-outline-empty-hint">尚未生成大纲，请先在「大纲」阶段生成并锁定大纲。</div>
+                </div>
+              </div>
+
+              <!-- 右：段落编辑区 -->
+              <div class="content-split-main">
+                <div class="typo-toolbar">
+                  <span class="typo-label">排版风格</span>
+                  <div class="typo-seg" id="typo-seg">
+                    <button class="typo-btn active" data-typo="default">默认</button>
+                    <button class="typo-btn" data-typo="spacious">舒展</button>
+                    <button class="typo-btn" data-typo="compact">紧凑</button>
+                    <button class="typo-btn" data-typo="formal">正式</button>
+                    <button class="typo-btn" data-typo="classical">古典</button>
+                  </div>
+                  <span id="typo-current" style="font-size:11px;color:var(--text2);margin-left:4px;"></span>
+                  <div class="typo-toggle">
+                    <button class="typo-toggle-btn active" id="mode-edit" type="button">编辑</button>
+                    <button class="typo-toggle-btn" id="mode-preview" type="button">预览</button>
+                  </div>
+                </div>
+                <div id="content-sections">
+                  <div class="dash-recent-empty" id="content-empty-hint">尚未生成内容，请点击「生成内容」。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 其他阶段占位面板（后续任务实现） -->
+        <div id="panel-other" class="phase-panel" style="display:none;">
+          <div class="card">
+            <div class="card-title" id="panel-title">当前阶段</div>
+            <div class="dash-recent-empty" id="panel-hint">正在加载当前阶段...</div>
+          </div>
+        </div>
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<script src="/common.js"></script>
+<script>
+// 静态模板：从 URL 路径解析项目 id，例如 /collaborative/42
+const projectId = parseInt(window.location.pathname.split('/').pop(), 10);
+
+const PHASE_LABELS = {
+  topic: '选题',
+  outline: '大纲',
+  content: '内容',
+  save: '保存'
+};
+
+// 步骤顺序（用于步骤条状态计算）
+const PHASE_ORDER = ['topic', 'outline', 'content'];
+
+// 渲染步骤条状态：当前步骤 active，已完成 done，当前步之前的箭头流淌 flow/ done
+function highlightPhase(phase) {
+  const idx = PHASE_ORDER.indexOf(phase);
+  document.querySelectorAll('#phase-nav .step').forEach(el => {
+    const p = el.getAttribute('data-phase');
+    const i = PHASE_ORDER.indexOf(p);
+    el.classList.toggle('active', i === idx);
+    el.classList.toggle('done', i < idx);
+  });
+  document.querySelectorAll('#phase-nav .step-arrow').forEach((el, i) => {
+    // 第 i 个箭头位于 step[i] 与 step[i+1] 之间
+    el.classList.toggle('done', i < idx);
+    el.classList.toggle('flow', i === idx - 1);
+  });
+}
+
+// 显示/隐藏阶段面板（简单按阶段门控）
+function showPhasePanel(phase) {
+  const topicPanel = document.getElementById('panel-topic');
+  const outlinePanel = document.getElementById('panel-outline');
+  const contentPanel = document.getElementById('panel-content');
+  const otherPanel = document.getElementById('panel-other');
+  const titleEl = document.getElementById('panel-title');
+  const hintEl = document.getElementById('panel-hint');
+  const label = PHASE_LABELS[phase] || phase;
+
+  if (topicPanel) topicPanel.style.display = 'none';
+  if (outlinePanel) outlinePanel.style.display = 'none';
+  if (contentPanel) contentPanel.style.display = 'none';
+  if (otherPanel) otherPanel.style.display = 'none';
+
+  if (phase === 'topic') {
+    if (topicPanel) topicPanel.style.display = '';
+  } else if (phase === 'outline') {
+    if (outlinePanel) outlinePanel.style.display = '';
+    // 进入大纲阶段时，若已有选题则展示标题
+    renderOutlineTopic();
+  } else if (phase === 'content') {
+    if (contentPanel) contentPanel.style.display = '';
+    // 先创建并填充文本框，再解析标题渲染侧边栏（否则侧边栏会因 textarea 为空而显示空提示）
+    renderContentSections();
+    renderContentOutlineList();
+    syncArticleTitle();
+  } else {
+    // 「保存」阶段：展示最近一次保存的成功状态 + 查看历史入口
+    if (otherPanel) otherPanel.style.display = '';
+    if (titleEl) titleEl.textContent = '已保存到历史文章';
+    if (hintEl) hintEl.textContent = '';
+    if (otherPanel) {
+      const art = lastSavedArticle;
+      const titleHtml = art ? _escHtml(art.title || '未命名创作') : '';
+      const idAttr = art ? `data-article-id="${art.id}"` : '';
+      otherPanel.innerHTML = `
+        <div class="card">
+          <div class="card-title">🎉 保存成功</div>
+          <p style="color:var(--text);font-size:15px;margin:0 0 6px;">你的文章已保存到历史文章。</p>
+          <p style="color:var(--text2);font-size:13px;margin:0 0 16px;${art ? '' : 'display:none;'}" id="save-phase-article-info">
+            <strong>${titleHtml}</strong>${art ? `（编号 #${art.id}）` : ''}
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a class="btn btn-primary" href="/history.html">查看历史文章</a>
+            <button class="btn" id="btn-stay-edit" type="button">继续编辑本文</button>
+          </div>
+          <p style="color:var(--text2);font-size:12px;margin:14px 0 0;">提示：文章末尾已自动附加 AI 辅助生成标识，符合《人工智能生成合成内容标识办法》要求。</p>
+        </div>`;
+      const stayBtn = otherPanel.querySelector('#btn-stay-edit');
+      if (stayBtn) {
+        stayBtn.onclick = function() { switchPhase('content'); };
+      }
+    }
+  }
+}
+
+// 当前选中的选题（{title, description} 或 null）
+let selectedTopic = null;
+
+// 当前项目状态（含 topic / outline_json 等），由 loadProjectState 填充
+let currentProject = null;
+
+// 当前大纲的内存副本（{sections:[...]} 或 null）、选中节点 id、是否已锁定
+let outlineData = null;
+let outlineSelectedId = null;
+let outlineLocked = false;
+
+// 当前内容段落的内存副本（[{id,title,content,status}]），由 loadProjectState / 生成接口填充
+let contentData = [];
+
+// 最近一次保存到历史文章的文章信息（用于保存阶段成功面板展示）
+let lastSavedArticle = null;
+
+// 渲染选题卡片
+function renderTopicCards(topics) {
+  const container = document.getElementById('topic-cards');
+  const emptyHint = document.getElementById('topic-empty-hint');
+  if (!container) return;
+
+  if (emptyHint) emptyHint.style.display = 'none';
+  container.innerHTML = '';
+
+  if (!topics || topics.length === 0) {
+    if (emptyHint) {
+      emptyHint.style.display = '';
+      emptyHint.textContent = '未生成选题，请尝试换一个想法。';
+    }
+    return;
+  }
+
+  topics.forEach((t, idx) => {
+    const card = document.createElement('div');
+    card.className = 'topic-card card';
+    card.id = 'topic-card-' + idx;
+    card.style.marginBottom = '10px';
+
+    const titleEl = document.createElement('div');
+    titleEl.style.fontWeight = '600';
+    titleEl.style.marginBottom = '4px';
+    titleEl.textContent = t.title || '';
+
+    const descEl = document.createElement('div');
+    descEl.style.fontSize = '13px';
+    descEl.style.color = 'var(--text2)';
+    descEl.style.marginBottom = '8px';
+    descEl.textContent = t.description || '';
+
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.gap = '8px';
+
+    const selectBtn = document.createElement('button');
+    selectBtn.className = 'btn btn-primary';
+    selectBtn.textContent = '选择此选题';
+    selectBtn.onclick = function() { selectTopic(idx, t); };
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn';
+    editBtn.textContent = '修改';
+    editBtn.onclick = function() { editTopic(idx, t); };
+
+    actions.appendChild(selectBtn);
+    actions.appendChild(editBtn);
+
+    card.appendChild(titleEl);
+    card.appendChild(descEl);
+    card.appendChild(actions);
+    container.appendChild(card);
+  });
+}
+
+// 生成选题
+async function generateTopics() {
+  const ideaEl = document.getElementById('topic-idea');
+  const idea = ideaEl ? ideaEl.value.trim() : '';
+  if (!idea) {
+    toast('请先输入创作想法', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-generate-topics');
+  if (btn) { btn.disabled = true; btn.textContent = '生成中...'; }
+  try {
+    const res = await fetch('/api/collaborative/topics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idea: idea }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      renderTopicCards(data.topics);
+      toast('已生成 ' + (data.topics ? data.topics.length : 0) + ' 个选题', 'success');
+    } else {
+      toast(data.error || '生成失败', 'error');
+    }
+  } catch (e) {
+    toast('生成失败：' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '生成选题'; }
+  }
+}
+
+// 切换自定义选题表单显示
+function toggleCustomTopic() {
+  const form = document.getElementById('custom-topic-form');
+  if (form) {
+    form.style.display = form.style.display === 'none' ? '' : 'none';
+  }
+}
+
+// 提交自定义选题
+function submitCustomTopic() {
+  const titleEl = document.getElementById('custom-topic-title');
+  const descEl = document.getElementById('custom-topic-desc');
+  const title = titleEl ? titleEl.value.trim() : '';
+  const description = descEl ? descEl.value.trim() : '';
+  if (!title) {
+    toast('请输入自定义选题标题', 'error');
+    return;
+  }
+  const custom = { title: title, description: description };
+  // 以单卡片形式呈现并选中
+  renderTopicCards([custom]);
+  selectTopic(0, custom);
+  toast('已使用自定义选题', 'success');
+}
+
+// 选中选题
+function selectTopic(idx, topic) {
+  selectedTopic = topic;
+  // 视觉标记
+  document.querySelectorAll('.topic-card').forEach((el, i) => {
+    if (i === idx) {
+      el.classList.add('selected');
+      el.style.borderColor = 'var(--accent, #4f8ef7)';
+    } else {
+      el.classList.remove('selected');
+      el.style.borderColor = '';
+    }
+  });
+  const label = document.getElementById('selected-topic-label');
+  if (label) label.textContent = '已选：' + (topic.title || '');
+  // 选择后直接进入大纲生成页面，无需再滚到底部点确认
+  confirmTopic();
+}
+
+// 修改选题（简单 prompt 编辑）
+function editTopic(idx, topic) {
+  const newTitle = prompt('修改选题标题', topic.title || '');
+  if (newTitle === null) return;
+  const newDesc = prompt('修改选题描述', topic.description || '');
+  if (newDesc === null) return;
+  const updated = { title: newTitle.trim() || topic.title, description: newDesc.trim() };
+  // 重新渲染：读取当前卡片列表，就地修改对应项
+  const cards = document.querySelectorAll('.topic-card');
+  if (cards[idx]) {
+    const t = cards[idx].querySelector('div:first-child');
+    const d = cards[idx].querySelector('div:nth-child(2)');
+    if (t) t.textContent = updated.title;
+    if (d) d.textContent = updated.description;
+  }
+  // 若当前正在选中该选题，同步更新
+  if (selectedTopic && selectedTopic.title === topic.title) {
+    selectedTopic = updated;
+    const label = document.getElementById('selected-topic-label');
+    if (label) label.textContent = '已选：' + updated.title;
+  }
+  toast('已更新选题', 'success');
+}
+
+// 确认选题，进入大纲阶段
+async function confirmTopic() {
+  if (!selectedTopic) {
+    toast('请先选择一个选题', 'error');
+    return;
+  }
+  if (isNaN(projectId)) {
+    toast('项目未就绪', 'error');
+    return;
+  }
+  try {
+    const res = await fetch('/api/collaborative/' + projectId + '/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: selectedTopic, current_phase: 'outline' }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast('选题已确认，正在生成大纲…', 'success');
+      switchPhase('outline');
+      // 选题确认后直接生成大纲，无需再点一次「生成大纲」
+      generateOutline();
+    } else {
+      toast(data.error || '保存失败', 'error');
+    }
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
+  }
+}
+
+// 阶段切换（占位：完整交互在后续任务实现）
+function switchPhase(phase) {
+  highlightPhase(phase);
+  showPhasePanel(phase);
+}
+
+// 加载项目状态，定位当前阶段
+async function loadProjectState() {
+  let phase = 'topic';
+  if (!isNaN(projectId)) {
+    try {
+      const res = await fetch('/api/collaborative/' + projectId);
+      if (res.ok) {
+        const project = await res.json();
+        // project 可能是 {ok, project} 包装或直接对象；兼容两种
+        currentProject = project.project || project;
+        if (currentProject && currentProject.current_phase) {
+          phase = currentProject.current_phase;
+        }
+        // 若项目已持久化 outline，预加载到内存
+        if (currentProject && currentProject.outline && !outlineData) {
+          const parsed = currentProject.outline;
+          if (parsed && Array.isArray(parsed.sections)) {
+            outlineData = parsed;
+          }
+        }
+        refreshOutlineSaveBtn();
+        // 若项目已持久化 content，预加载到内存
+        if (currentProject && currentProject.content && Array.isArray(currentProject.content)) {
+          contentData = currentProject.content;
+        }
+        // 若项目已锁定到内容阶段，保持 outline 只读
+        if (currentProject && currentProject.current_phase === 'content') {
+          outlineLocked = true;
+        }
+      } else {
+        console.info('项目状态加载失败，默认进入选题阶段');
+      }
+    } catch (e) {
+      console.error('加载项目状态失败:', e);
+    }
+  }
+  highlightPhase(phase);
+  showPhasePanel(phase);
+}
+
+// ═══════════════════════════════════════════════════
+// 大纲阶段逻辑
+// ═══════════════════════════════════════════════════
+
+// 在大纲面板顶部展示当前选题（来自已加载项目或已选选题）
+function renderOutlineTopic() {
+  const titleEl = document.getElementById('outline-topic-title');
+  const descEl = document.getElementById('outline-topic-desc');
+  if (!titleEl || !descEl) return;
+  // 优先使用已加载项目的 topic，否则回退到 selectedTopic
+  const topic = (currentProject && currentProject.topic) || selectedTopic || {};
+  titleEl.textContent = topic.title || '(未确认选题)';
+  descEl.textContent = topic.description || '';
+}
+
+// 生成大纲
+async function generateOutline() {
+  const topic = (currentProject && currentProject.topic) || selectedTopic;
+  if (!topic || !topic.title) {
+    toast('请先确认选题', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-generate-outline');
+  if (btn) { btn.disabled = true; btn.textContent = '生成中...'; }
+  try {
+    const res = await fetch('/api/collaborative/outline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: topic.title, context: topic.description || '' }),
+    });
+    const data = await res.json();
+    if (data.ok && data.outline) {
+      outlineData = data.outline;
+      outlineSelectedId = null;
+      // 重新生成大纲意味着进入新的编辑周期，清除旧的锁定状态
+      outlineLocked = false;
+      renderOutlineTree();
+      refreshOutlineSaveBtn();
+      toast('大纲已生成', 'success');
+    } else {
+      toast(data.error || '生成失败', 'error');
+    }
+  } catch (e) {
+    toast('生成失败：' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '生成大纲'; }
+  }
+}
+
+// 刷新保存大纲按钮状态（有大纲则启用，无则禁用）
+function refreshOutlineSaveBtn() {
+  const saveBtn = document.getElementById('btn-save-outline');
+  if (!saveBtn) return;
+  const has = !!(outlineData && outlineData.sections && outlineData.sections.length > 0);
+  saveBtn.disabled = !has;
+  saveBtn.title = has ? '保存大纲到项目' : '请先生成大纲再保存';
+}
+
+// 递归渲染大纲树到 #outline-tree
+function renderOutlineTree() {
+  const container = document.getElementById('outline-tree');
+  const emptyHint = document.getElementById('outline-empty-hint');
+  if (!container) return;
+
+  // 保留 empty-hint 节点，仅清空之前渲染的树节点
+  Array.from(container.children).forEach(child => {
+    if (child.id !== 'outline-empty-hint') container.removeChild(child);
+  });
+
+  if (!outlineData || !outlineData.sections || outlineData.sections.length === 0) {
+    if (emptyHint) emptyHint.style.display = '';
+    return;
+  }
+  if (emptyHint) emptyHint.style.display = 'none';
+
+  const ul = document.createElement('ul');
+  ul.className = 'outline-root';
+  outlineData.sections.forEach(node => ul.appendChild(buildOutlineNode(node, 0)));
+  container.appendChild(ul);
+
+  refreshOutlineControls();
+}
+
+// 构建单个节点 DOM（递归）
+function buildOutlineNode(node, depth) {
+  const li = document.createElement('li');
+  li.className = 'outline-node';
+  li.dataset.id = node.id || '';
+
+  const row = document.createElement('div');
+  row.className = 'outline-node-row';
+  row.style.paddingLeft = (depth * 16) + 'px';
+  row.draggable = !outlineLocked;
+  row.dataset.id = node.id || '';
+
+  // 选中高亮
+  if (node.id === outlineSelectedId) {
+    row.classList.add('selected');
+    row.style.borderColor = 'var(--accent, #4f8ef7)';
+  }
+
+  // 标题（双击编辑）
+  const titleSpan = document.createElement('span');
+  titleSpan.className = 'outline-node-title';
+  titleSpan.textContent = node.title || '(未命名)';
+  titleSpan.ondblclick = function(e) {
+    e.stopPropagation();
+    if (outlineLocked) return;
+    startTitleEdit(li, node, titleSpan);
+  };
+  titleSpan.onclick = function(e) {
+    e.stopPropagation();
+    selectNode(node.id);
+  };
+  row.appendChild(titleSpan);
+
+  // 折叠/展开小按钮（有子节点时）
+  if (node.children && node.children.length > 0) {
+    const toggle = document.createElement('span');
+    toggle.className = 'outline-toggle';
+    toggle.textContent = '▾';
+    toggle.onclick = function(e) {
+      e.stopPropagation();
+      const sub = li.querySelector(':scope > .outline-children');
+      if (sub) {
+        const hidden = sub.style.display === 'none';
+        sub.style.display = hidden ? '' : 'none';
+        toggle.textContent = hidden ? '▾' : '▸';
+      }
+    };
+    row.insertBefore(toggle, titleSpan);
+  }
+
+  // 拖拽事件（仅未锁定时启用）
+  row.addEventListener('dragstart', onDragStart);
+  row.addEventListener('dragover', onDragOver);
+  row.addEventListener('drop', onDrop);
+  row.addEventListener('dragend', onDragEnd);
+
+  li.appendChild(row);
+
+  // 要点子列表
+  if (node.points && node.points.length > 0) {
+    const pts = document.createElement('ul');
+    pts.className = 'outline-points';
+    node.points.forEach(p => {
+      const pt = document.createElement('li');
+      pt.textContent = p;
+      pts.appendChild(pt);
+    });
+    const wrap = document.createElement('div');
+    wrap.className = 'outline-points-wrap';
+    wrap.style.paddingLeft = ((depth + 1) * 16) + 'px';
+    wrap.appendChild(pts);
+    li.appendChild(wrap);
+  }
+
+  // 递归子节点
+  if (node.children && node.children.length > 0) {
+    const childUl = document.createElement('ul');
+    childUl.className = 'outline-children';
+    node.children.forEach(child => childUl.appendChild(buildOutlineNode(child, depth + 1)));
+    li.appendChild(childUl);
+  }
+
+  return li;
+}
+
+// 双击标题进入编辑
+function startTitleEdit(li, node, titleSpan) {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = node.title || '';
+  input.className = 'outline-node-input';
+  input.onblur = function() {
+    const v = input.value.trim() || node.title;
+    node.title = v;
+    titleSpan.textContent = v;
+    row.replaceChild(titleSpan, input);
+  };
+  input.onkeydown = function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); input.value = node.title; input.blur(); }
+  };
+  const row = titleSpan.parentNode;
+  row.replaceChild(input, titleSpan);
+  input.focus();
+}
+
+// 选中节点
+function selectNode(id) {
+  outlineSelectedId = id;
+  document.querySelectorAll('#outline-tree .outline-node-row').forEach(el => {
+    if (el.dataset.id === id) {
+      el.classList.add('selected');
+      el.style.borderColor = 'var(--accent, #4f8ef7)';
+    } else {
+      el.classList.remove('selected');
+      el.style.borderColor = '';
+    }
+  });
+  const label = document.getElementById('outline-selected-label');
+  if (label) label.textContent = '已选节点：' + (id || '无');
+}
+
+// ── 拖拽排序（HTML5，仅重排同级节点）──
+let _dragState = { draggingId: null };
+
+function onDragStart(e) {
+  _dragState.draggingId = this.dataset.id;
+  this.style.opacity = '0.5';
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', this.dataset.id); } catch (_) {}
+  }
+}
+
+function onDragOver(e) {
+  if (e.preventDefault) e.preventDefault();
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function onDrop(e) {
+  if (e.stopPropagation) e.stopPropagation();
+  if (e.preventDefault) e.preventDefault();
+  const fromId = _dragState.draggingId;
+  const toId = this.dataset.id;
+  if (fromId && toId && fromId !== toId) {
+    reorderSiblings(fromId, toId);
+  }
+  return false;
+}
+
+function onDragEnd() {
+  this.style.opacity = '';
+  _dragState.draggingId = null;
+}
+
+// 在同级内把 fromId 移动到 toId 之前
+function reorderSiblings(fromId, toId) {
+  // 找到 from 的父容器（sections 数组或某节点的 children）
+  const location = findParentList(fromId);
+  const toLocation = findParentList(toId);
+  if (!location || !toLocation || location !== toLocation) {
+    // 不同父节点：不允许跨级拖拽
+    return;
+  }
+  const list = location;
+  const fromIdx = list.findIndex(n => n.id === fromId);
+  const toIdx = list.findIndex(n => n.id === toId);
+  if (fromIdx < 0 || toIdx < 0) return;
+  const [moved] = list.splice(fromIdx, 1);
+  const insertAt = toIdx > fromIdx ? toIdx : toIdx;
+  list.splice(insertAt, 0, moved);
+  renderOutlineTree();
+}
+
+// 返回包含指定 id 节点的那个数组（sections 或某 children）
+function findParentList(id) {
+  if (!outlineData) return null;
+  if (outlineData.sections.some(n => n.id === id)) return outlineData.sections;
+  return _findChildrenList(outlineData.sections, id);
+}
+function _findChildrenList(nodes, id) {
+  for (const n of nodes) {
+    if (n.children && n.children.some(c => c.id === id)) return n.children;
+    if (n.children) {
+      const deeper = _findChildrenList(n.children, id);
+      if (deeper) return deeper;
+    }
+  }
+  return null;
+}
+
+// 添加子节点（选中节点下，或根）
+function addNode() {
+  if (!outlineData) {
+    toast('请先生成大纲', 'error');
+    return;
+  }
+  const newNode = {
+    id: 'n' + Date.now(),
+    title: '新章节',
+    points: [],
+    children: [],
+  };
+  if (outlineSelectedId) {
+    const parent = findNodeById(outlineData.sections, outlineSelectedId);
+    if (parent) {
+      if (!parent.children) parent.children = [];
+      parent.children.push(newNode);
+    } else {
+      outlineData.sections.push(newNode);
+    }
+  } else {
+    outlineData.sections.push(newNode);
+  }
+  outlineSelectedId = newNode.id;
+  renderOutlineTree();
+  toast('已添加节点', 'success');
+}
+
+// 删除选中节点（不可删除最后一个根节点）
+function deleteNode() {
+  if (!outlineData || !outlineSelectedId) {
+    toast('请先选中要删除的节点', 'error');
+    return;
+  }
+  const id = outlineSelectedId;
+  // 根节点保护
+  if (outlineData.sections.some(n => n.id === id)) {
+    const remaining = outlineData.sections.filter(n => n.id !== id);
+    if (remaining.length === 0) {
+      toast('不能删除最后一个根节点', 'error');
+      return;
+    }
+    outlineData.sections = remaining;
+  } else {
+    const removed = removeFromChildren(outlineData.sections, id);
+    if (!removed) {
+      toast('未找到该节点', 'error');
+      return;
+    }
+  }
+  outlineSelectedId = null;
+  renderOutlineTree();
+  toast('已删除节点', 'success');
+}
+
+// 递归查找节点
+function findNodeById(nodes, id) {
+  for (const n of nodes) {
+    if (n.id === id) return n;
+    if (n.children) {
+      const found = findNodeById(n.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+// 递归从 children 中移除指定 id
+function removeFromChildren(nodes, id) {
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].children) {
+      const idx = nodes[i].children.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        nodes[i].children.splice(idx, 1);
+        return true;
+      }
+      const deeper = removeFromChildren(nodes[i].children, id);
+      if (deeper) return true;
+    }
+  }
+  return false;
+}
+
+// 保存大纲到项目状态
+async function saveOutline() {
+  if (!outlineData) {
+    toast('没有可保存的大纲', 'error');
+    return;
+  }
+  if (isNaN(projectId)) {
+    toast('项目未就绪', 'error');
+    return;
+  }
+  try {
+    const res = await fetch('/api/collaborative/' + projectId + '/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outline: outlineData, current_phase: 'outline' }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast('大纲已保存', 'success');
+    } else {
+      toast(data.error || '保存失败', 'error');
+    }
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
+  }
+}
+
+// 锁定大纲并进入内容阶段
+async function lockOutline() {
+  if (!outlineData) {
+    toast('请先生成大纲', 'error');
+    return;
+  }
+  if (isNaN(projectId)) {
+    toast('项目未就绪', 'error');
+    return;
+  }
+  try {
+    const res = await fetch('/api/collaborative/' + projectId + '/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outline: outlineData, current_phase: 'content' }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      outlineLocked = true;
+      refreshOutlineControls();
+      toast('大纲已锁定，正在生成内容…', 'success');
+      switchPhase('content');
+      // 锁定大纲后直接生成内容，无需再点「全部生成」
+      generateContent(null);
+    } else {
+      toast(data.error || '锁定失败', 'error');
+    }
+  } catch (e) {
+    toast('锁定失败：' + e.message, 'error');
+  }
+}
+
+// 根据锁定状态刷新编辑控件可用性
+function refreshOutlineControls() {
+  const addBtn = document.getElementById('btn-add-node');
+  const delBtn = document.getElementById('btn-delete-node');
+  const genBtn = document.getElementById('btn-generate-outline');
+  const lockBtn = document.getElementById('btn-lock-outline');
+  const lockedTag = document.getElementById('outline-locked-tag');
+  if (addBtn) addBtn.disabled = outlineLocked;
+  if (delBtn) delBtn.disabled = outlineLocked;
+  if (genBtn) genBtn.disabled = outlineLocked;
+  if (lockBtn) {
+    lockBtn.disabled = outlineLocked;
+    lockBtn.textContent = outlineLocked ? '大纲已锁定' : '生成内容';
+  }
+  if (lockedTag) lockedTag.style.display = outlineLocked ? '' : 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// 内容阶段逻辑
+// ═══════════════════════════════════════════════════
+
+// 从内容文本提取 markdown 标题层级列表（跳过围栏代码块）
+function parseContentHeadings(text) {
+  const headings = [];
+  const lines = text.split('\n');
+  let inCodeBlock = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^```/.test(line.trim())) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock) continue;
+    const m = /^(#{2,6})\s+(.*)$/.exec(line);
+    if (m) {
+      headings.push({ level: m[1].length, title: m[2].trim(), lineIndex: i });
+    }
+  }
+  return headings;
+}
+
+// 扁平化递归收集大纲所有节点（含 children），附带深度用于标题层级
+function flattenOutlineSections(sections, depth = 0, out = []) {
+  if (!Array.isArray(sections)) return out;
+  for (const s of sections) {
+    if (s && s.id) {
+      out.push({ id: s.id, title: s.title || '', depth: depth });
+    }
+    if (s && Array.isArray(s.children) && s.children.length > 0) {
+      flattenOutlineSections(s.children, depth + 1, out);
+    }
+  }
+  return out;
+}
+
+// 当前使用的 outline 对象（优先内存副本，否则已加载项目）
+function currentOutline() {
+  return outlineData || (currentProject && currentProject.outline) || { sections: [] };
+}
+
+// 渲染大纲章节列表 + 每个章节的「生成内容」按钮（8.1）
+function renderContentOutlineList() {
+  const container = document.getElementById('content-outline-list');
+  const emptyHint = document.getElementById('content-outline-empty-hint');
+  if (!container) return;
+  // 保留 empty-hint 节点，仅清空之前渲染的章节行
+  Array.from(container.children).forEach(child => {
+    if (child.id !== 'content-outline-empty-hint') container.removeChild(child);
+  });
+
+  const ta = document.getElementById('article-content-input');
+  if (!ta) return;
+  const headings = parseContentHeadings(ta.value);
+  if (headings.length === 0) {
+    if (emptyHint) emptyHint.style.display = '';
+    return;
+  }
+  if (emptyHint) emptyHint.style.display = 'none';
+
+  headings.forEach(h => {
+    const row = document.createElement('div');
+    row.className = 'content-outline-item';
+    row.setAttribute('data-line-index', h.lineIndex);
+    row.style.paddingLeft = ((h.level - 2) * 16) + 'px';
+    row.onclick = function() { scrollToContentSectionByLine(h.lineIndex, row); };
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'ci-title';
+    titleSpan.textContent = h.title;
+
+    row.appendChild(titleSpan);
+    container.appendChild(row);
+  });
+}
+
+// 生成内容（sectionId 为空时生成全部）
+async function generateContent(sectionId) {
+  const outline = currentOutline();
+  if (!outline.sections || outline.sections.length === 0) {
+    toast('请先生成大纲', 'error');
+    return;
+  }
+  if (isNaN(projectId)) {
+    toast('项目未就绪', 'error');
+    return;
+  }
+  const btn = sectionId
+    ? document.querySelector('button[data-section="' + sectionId + '"]')
+    : document.getElementById('btn-generate-all-content');
+  if (btn) { btn.disabled = true; btn.textContent = '生成中...'; }
+  try {
+    const body = { outline: outline };
+    if (sectionId) body.section = sectionId;
+    const res = await fetch('/api/collaborative/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.sections)) {
+      // 合并到 contentData：按 id 更新或追加
+      data.sections.forEach(item => {
+        const idx = contentData.findIndex(c => c.id === item.id);
+        if (idx >= 0) contentData[idx] = item;
+        else contentData.push(item);
+      });
+      await saveContentState();
+      renderContentSections();
+      toast('内容已生成', 'success');
+    } else {
+      toast(data.error || '生成失败', 'error');
+    }
+  } catch (e) {
+    toast('生成失败：' + e.message, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = sectionId ? '生成' : '全部生成';
+    }
+  }
+}
+
+// 持久化内容到项目状态（自动保存）
+async function saveContentState() {
+  if (isNaN(projectId)) return;
+  try {
+    const res = await fetch('/api/collaborative/' + projectId + '/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: contentData }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      toast(data.error || '自动保存失败', 'error');
+    }
+  } catch (e) {
+    toast('自动保存失败：' + e.message, 'error');
+  }
+}
+
+// 文本编辑框根据内容高度自动调整（输入时随内容增长，缩小时收回）
+function autoResizeTextarea(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+// 渲染内容编辑区 — 右侧整体编辑（单一大编辑框，自动撑高显示全文，9.1）
+function renderContentSections() {
+  const container = document.getElementById('content-sections');
+  const emptyHint = document.getElementById('content-empty-hint');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const flat = flattenOutlineSections(currentOutline().sections);
+  if (flat.length === 0) {
+    const hint = document.createElement('div');
+    hint.className = 'dash-recent-empty';
+    hint.id = 'content-empty-hint';
+    hint.textContent = '尚未生成大纲。';
+    container.appendChild(hint);
+    return;
+  }
+
+  const text = serializeArticleForEdit();
+  if (emptyHint) emptyHint.style.display = 'none';
+
+  const ta = document.createElement('textarea');
+  ta.id = 'article-content-input';
+  ta.className = 'content-paragraph';
+  ta.style.width = '100%';
+  ta.style.boxSizing = 'border-box';
+  ta.style.resize = 'none';
+  ta.style.overflow = 'hidden';
+  ta.style.minHeight = '80px';
+  ta.style.whiteSpace = 'pre-wrap';
+  ta.style.padding = '4px';
+  ta.style.border = '1px solid transparent';
+  ta.style.borderRadius = '4px';
+  ta.value = text;
+  ta.addEventListener('input', function() { onArticleInput(ta); });
+  container.appendChild(ta);
+  // Markdown 预览容器（与编辑框互斥显示）
+  const preview = document.createElement('div');
+  preview.id = 'article-content-preview';
+  preview.className = 'content-preview md-preview';
+  container.appendChild(preview);
+  applyContentMode();
+  autoResizeTextarea(ta); // 初始按全文高度撑开
+}
+
+// 按行号滚动编辑器到对应标题行并高亮该目录项
+function scrollToContentSectionByLine(lineIndex, rowElement) {
+  const ta = document.getElementById('article-content-input');
+  const main = document.querySelector('.content-split-main');
+  // 高亮当前目录项
+  document.querySelectorAll('#content-outline-list .content-outline-item').forEach(el => {
+    el.classList.remove('active');
+  });
+  if (rowElement) rowElement.classList.add('active');
+  if (!ta || !main) return;
+  // 估算 scrollTop：按行号比例乘以编辑框总高度
+  const lines = ta.value.split('\n');
+  const ratio = lineIndex / lines.length;
+  main.scrollTop = ratio * main.scrollHeight;
+}
+
+// 点击左侧大纲章节 → 滚动到右侧编辑框对应标题行并高亮
+function scrollToContentSection(id) {
+  const ta = document.getElementById('article-content-input');
+  const main = document.querySelector('.content-split-main');
+  // 高亮当前章节（兼容旧调用点：按 data-section 属性匹配）
+  document.querySelectorAll('#content-outline-list .content-outline-item').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('data-section') === id);
+  });
+  if (!ta || !main) return;
+  // 找到该章节标题在编辑框文本中的行号（计数任意层级标题行）
+  const flat = flattenOutlineSections(currentOutline().sections);
+  const idx = flat.findIndex(s => s.id === id);
+  if (idx < 0) return;
+  const lines = ta.value.split('\n');
+  let lineNo = 0, found = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^#{2,6}\s+/.test(lines[i])) {
+      if (lineNo === idx) { found = i; break; }
+      lineNo++;
+    }
+  }
+  if (found < 0) return;
+  // 估算 scrollTop：按行比例乘以编辑框总高度
+  const ratio = found / lines.length;
+  main.scrollTop = ratio * main.scrollHeight;
+}
+
+// 把当前 contentData 序列化为整篇可编辑文本（## 标题 + 正文，9.1）
+function serializeArticleForEdit() {
+  const flat = flattenOutlineSections(currentOutline().sections);
+  const parts = [];
+  flat.forEach(s => {
+    const item = contentData.find(c => c.id === s.id);
+    const title = (item && item.title) || s.title || s.id;
+    const body = (item && item.content) || '';
+    parts.push('## ' + title + '\n\n' + body);
+  });
+  return parts.join('\n\n');
+}
+
+// 把编辑后的整篇文本解析回 contentData（按 ## 标题顺序匹配大纲章节，9.1）
+function parseArticleText(text) {
+  const flat = flattenOutlineSections(currentOutline().sections);
+  const blocks = text.split(/^##\s+/m).filter(b => b.length > 0);
+  blocks.forEach((block, i) => {
+    const sec = flat[i];
+    if (!sec) return;
+    const firstNewline = block.indexOf('\n');
+    const title = firstNewline >= 0 ? block.slice(0, firstNewline).trim() : block.trim();
+    const body = firstNewline >= 0 ? block.slice(firstNewline + 1).replace(/^\n+/, '').trim() : '';
+    let item = contentData.find(c => c.id === sec.id);
+    if (!item) {
+      item = { id: sec.id, title: title || sec.title || sec.id, content: body, status: 'initial' };
+      contentData.push(item);
+    } else {
+      item.title = title || item.title;
+      item.content = body;
+    }
+    if (body && item.status === 'initial') item.status = 'edited';
+  });
+}
+
+// 整篇文章输入：解析回 contentData + 自动撑高 + 防抖保存 + 防抖刷新目录（9.1）
+let _saveArticleTimer = null;
+let _outlineTimer = null;
+function onArticleInput(ta) {
+  parseArticleText(ta.value);
+  autoResizeTextarea(ta);
+  if (_saveArticleTimer) clearTimeout(_saveArticleTimer);
+  _saveArticleTimer = setTimeout(async () => {
+    try { await saveContentState(); }
+    catch (e) { toast('保存失败：' + e.message, 'error'); }
+  }, 600);
+  // 防抖刷新大纲目录（独立短计时器，避免每次击键重渲染）
+  if (_outlineTimer) clearTimeout(_outlineTimer);
+  _outlineTimer = setTimeout(() => {
+    renderContentOutlineList();
+  }, 300);
+}
+
+// ── Markdown 渲染（轻量、无依赖）──
+function renderMarkdown(md) {
+  if (!md || !md.trim()) return '<p style="color:var(--text2);">（暂无内容）</p>';
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const lines = md.split('\n');
+  const out = [];
+  let i = 0;
+  const hrRE = /^\s*(?:[-*_]\s*){3,}\s*$/;
+  const ulRE = /^\s*[*+-]\s+/;
+  const olRE = /^\s*\d+\.\s+/;
+  const headingRE = /^(#{1,6})\s+(.*)$/;
+  // 行内渲染：用 \x00 作占位符（源码为纯 ASCII 转义序列，运行时生成 NUL 字节）
+  const inline = (s) => {
+    const codes = [];
+    const TOK = '\x00';
+    s = s.replace(/`([^`\n]+)`/g, (_, c) => { codes.push(c); return TOK + (codes.length - 1) + TOK; });
+    s = esc(s);
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+         .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+         .replace(/_([^_\n]+)_/g, '<em>$1</em>');
+    s = s.replace(/\[([^\]\n]+)\]\(([^)\n]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    s = s.replace(new RegExp('\\x00(\\d+)\\x00', 'g'), (_, n) => '<code>' + esc(codes[+n]) + '</code>');
+    return s;
+  };
+  while (i < lines.length) {
+    const line = lines[i];
+    if (headingRE.test(line)) {
+      const m = line.match(headingRE);
+      out.push('<' + 'h' + m[1].length + '>' + inline(m[2]) + '</' + 'h' + m[1].length + '>');
+      i++; continue;
+    }
+    if (/^```/.test(line)) {
+      const buf = []; i++;
+      while (i < lines.length && !/^```/.test(lines[i])) { buf.push(lines[i]); i++; }
+      i++;
+      out.push('<pre><code>' + esc(buf.join('\n')) + '</code></pre>');
+      continue;
+    }
+    if (hrRE.test(line)) { out.push('<hr>'); i++; continue; }
+    if (/^>\s?/.test(line)) {
+      const buf = [];
+      while (i < lines.length && /^>\s?/.test(lines[i])) { buf.push(lines[i].replace(/^>\s?/, '')); i++; }
+      out.push('<blockquote>' + inline(buf.join('\n')) + '</blockquote>');
+      continue;
+    }
+    if (ulRE.test(line)) {
+      const buf = [];
+      while (i < lines.length && ulRE.test(lines[i])) { buf.push(lines[i].replace(ulRE, '')); i++; }
+      out.push('<ul>' + buf.map(b => '<li>' + inline(b) + '</li>').join('') + '</ul>');
+      continue;
+    }
+    if (olRE.test(line)) {
+      const buf = [];
+      while (i < lines.length && olRE.test(lines[i])) { buf.push(lines[i].replace(olRE, '')); i++; }
+      out.push('<ol>' + buf.map(b => '<li>' + inline(b) + '</li>').join('') + '</ol>');
+      continue;
+    }
+    if (/^\s*$/.test(line)) { i++; continue; }
+    const buf = [line]; i++;
+    while (i < lines.length && !/^\s*$/.test(lines[i]) && !headingRE.test(lines[i])
+           && !/^```/.test(lines[i]) && !/^>\s?/.test(lines[i]) && !ulRE.test(lines[i])
+           && !olRE.test(lines[i]) && !hrRE.test(lines[i])) {
+      buf.push(lines[i]); i++;
+    }
+    out.push('<p>' + inline(buf.join(' ')) + '</p>');
+  }
+  return out.join('\n');
+}
+
+// ── 编辑/预览模式切换 ──
+let contentMode = 'edit';
+function applyContentMode() {
+  const ta = document.getElementById('article-content-input');
+  const pv = document.getElementById('article-content-preview');
+  const editBtn = document.getElementById('mode-edit');
+  const prevBtn = document.getElementById('mode-preview');
+  if (contentMode === 'preview') {
+    pv.innerHTML = renderMarkdown(ta ? ta.value : '');
+    pv.classList.add('active');
+    if (ta) ta.style.display = 'none';
+    if (editBtn) editBtn.classList.remove('active');
+    if (prevBtn) prevBtn.classList.add('active');
+  } else {
+    pv.classList.remove('active');
+    if (ta) ta.style.display = '';
+    if (editBtn) editBtn.classList.add('active');
+    if (prevBtn) prevBtn.classList.remove('active');
+  }
+}
+function setContentMode(mode) {
+  contentMode = mode;
+  applyContentMode();
+}
+
+// 渲染内容生成进度指示器（8.4）
+// ── 排版风格选择（实时预览）──
+const TYPO_LABELS = { default: '默认', spacious: '舒展', compact: '紧凑', formal: '正式', classical: '古典' };
+
+function applyTypoStyle(style) {
+  const container = document.getElementById('content-sections');
+  if (!container) return;
+  // 移除所有排版风格类，再应用当前选择
+  Object.keys(TYPO_LABELS).forEach(s => container.classList.remove('typo-' + s));
+  container.classList.add('typo-' + style);
+  // 同步按钮高亮
+  document.querySelectorAll('.typo-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-typo') === style);
+  });
+  const labelEl = document.getElementById('typo-current');
+  if (labelEl) labelEl.textContent = '当前：' + (TYPO_LABELS[style] || style);
+  try { localStorage.setItem('collab_typo_style', style); } catch (e) {}
+}
+
+function initTypoSelector() {
+  const seg = document.getElementById('typo-seg');
+  if (!seg) return;
+  seg.addEventListener('click', function (e) {
+    const btn = e.target.closest('.typo-btn');
+    if (!btn) return;
+    applyTypoStyle(btn.getAttribute('data-typo'));
+  });
+  // 恢复上次选择（默认 default）
+  let saved = 'default';
+  try { saved = localStorage.getItem('collab_typo_style') || 'default'; } catch (e) {}
+  if (!TYPO_LABELS[saved]) saved = 'default';
+  applyTypoStyle(saved);
+}
+
+// 初始化编辑/预览切换
+function initContentModeToggle() {
+  const editBtn = document.getElementById('mode-edit');
+  const prevBtn = document.getElementById('mode-preview');
+  if (editBtn) editBtn.addEventListener('click', function () { setContentMode('edit'); });
+  if (prevBtn) prevBtn.addEventListener('click', function () {
+    setContentMode('preview');
+    const pv = document.getElementById('article-content-preview');
+    if (pv) pv.scrollTop = 0;
+  });
+}
+
+// 组装全文（供后续保存环节使用，8.5）
+let assembledArticle = '';
+function assembleArticle() {
+  const flat = flattenOutlineSections(currentOutline().sections);
+  const parts = [];
+  flat.forEach(s => {
+    const item = contentData.find(c => c.id === s.id);
+    if (item && item.content && item.content.trim() !== '') {
+      parts.push('## ' + (item.title || s.title || s.id) + '\n\n' + item.content);
+    }
+  });
+  assembledArticle = parts.join('\n\n');
+  return assembledArticle;
+}
+
+// 同步文章标题输入框（进入内容阶段时填入默认标题，保留用户已修改的值）
+let _articleTitleTouched = false;
+function syncArticleTitle() {
+  const input = document.getElementById('article-title-input');
+  if (!input) return;
+  if (_articleTitleTouched) return; // 用户已手动修改过，不覆盖
+  const def = (currentProject && currentProject.title)
+    || (selectedTopic && selectedTopic.title)
+    || '';
+  input.value = def;
+}
+
+// 保存到历史文章（8.5）：汇总后持久化为历史文章（强制附加 AI 标识）
+async function saveToHistory() {
+  try {
+    const text = assembleArticle();
+    if (!text) {
+      toast('暂无可保存的内容，请先生成', 'error');
+      return;
+    }
+    if (isNaN(projectId)) {
+      toast('项目未就绪', 'error');
+      return;
+    }
+    const customTitle = (document.getElementById('article-title-input') || {}).value || '';
+    const title = customTitle.trim()
+      || (currentProject && currentProject.title)
+      || (selectedTopic && selectedTopic.title)
+      || '未命名创作';
+    const body = {
+      title: title,
+      content: text,
+      topic: (currentProject && currentProject.topic) || selectedTopic || {},
+      outline: (outlineData || (currentProject && currentProject.outline)) || {},
+    };
+    const res = await fetch('/api/collaborative/' + projectId + '/save-article', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      lastSavedArticle = { id: data.article_id, title: title };
+      toast('已保存到历史文章', 'success');
+    } else {
+      toast(data.error || '保存失败', 'error');
+    }
+  } catch (e) {
+    toast('保存失败：' + e.message, 'error');
+  }
+}
+
+// ── 页面初始化 ──
+document.addEventListener('DOMContentLoaded', async function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('href') === currentPage) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  await loadCurrentUser();
+  loadProjectState();
+  initTypoSelector();
+  initContentModeToggle();
+
+  // 内容面板按钮事件绑定
+  const genAllBtn = document.getElementById('btn-generate-all-content');
+  if (genAllBtn) genAllBtn.onclick = function() { generateContent(null); };
+  const saveHistBtn = document.getElementById('btn-save-to-history');
+  if (saveHistBtn) saveHistBtn.onclick = saveToHistory;
+  // 用户手动编辑标题后，不再被默认值覆盖
+  const articleTitleInput = document.getElementById('article-title-input');
+  if (articleTitleInput) {
+    articleTitleInput.addEventListener('input', function() { _articleTitleTouched = true; });
+  }
+});
+</script>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+</body>
+</html>

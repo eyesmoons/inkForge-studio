@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日热搜 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<link rel="stylesheet" href="/hotrank.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔥</div>
+      <h1>墨锻工坊</h1>
+      <p>AI 辅助内容工作台</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/collaborative" class="nav-item" data-title="协同创作"><span class="icon">📝</span> 协同创作</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item active" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+            <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <a href="/settings.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">🔥 每日热搜</div>
+      <div class="topbar-actions">
+        <span id="last-updated" style="font-size:12px;color:var(--text2);margin-right:12px;"></span>
+        <button class="btn btn-primary" id="refresh-all-btn" onclick="refreshAll()">
+          🔄 全部刷新
+        </button>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- 平台切换 Tab -->
+      <div class="hotrank-tabs" id="platform-tabs">
+        <!-- 由 JS 动态生成 -->
+      </div>
+
+      <!-- 热搜内容区 -->
+      <div class="hotrank-grid" id="hotrank-grid">
+        <!-- 由 JS 动态生成 -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/hotrank.js"></script>
+</body>
+</html>

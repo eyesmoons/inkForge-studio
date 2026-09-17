@@ -1,0 +1,20 @@
+{
+  "change": "inkforge-collaborative-writing",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "398074ab960bf9833f133d78576be793eefc68829cdaa05efd81ab43f6a555fe",
+  "files": [
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/proposal.md", "sha256": "b6c9de0064e95225f71a84c0f66498c2f1a0c2ac7cf0129740315539d5da5747" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/design.md", "sha256": "667d1ef9a56f79458f80c70bb27458d1997d69ab64ac954d2d3603460d1d00b8" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/tasks.md", "sha256": "cde02f8310f80ffad7312d244ca8a10e017ab5596053f926cdbc88fca5b938d1" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/specs/ai-content-generation/spec.md", "sha256": "4d816018997cdb3564ffefde7d75ff34f6435d60c97c1b2f4bd49a160f962959" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/specs/ai-content-labeling/spec.md", "sha256": "87893f92cc75ddc192c82ad984e1e4093b926e7865222ae15985a1df8c88352d" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/specs/ai-outline-generation/spec.md", "sha256": "1a00b80b6e318829429f921ec73a7b090afbd3e7cf6f970530a38e59120c3408" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/specs/ai-topic-generation/spec.md", "sha256": "6737c53d0a21c547f784d8606e354f36986e9357608500e09ed1b4c717d6bc73" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/specs/article-history/spec.md", "sha256": "603cfb89593d2c52135634a5e1b2b2daaa066cb290ba6d1ef6efdeb5eed79db9" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/specs/collaborative-workbench/spec.md", "sha256": "3af6eedb7b55453f62a943f02b58f5afe42eab73c1137204aa4bd6e236e2bc5b" },
+    { "path": "docs/openspec/changes/inkforge-collaborative-writing/specs/version-management/spec.md", "sha256": "95bd27be50cc4fe4ddcf413ff9629899668eb7271ea988c6c4c0704b63ebb5db" }
+  ]
+}

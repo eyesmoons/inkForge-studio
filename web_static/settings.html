@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统配置 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔥</div>
+      <h1>墨锻工坊</h1>
+      <p>AI 辅助内容工作台</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/collaborative" class="nav-item" data-title="协同创作"><span class="icon">📝</span> 协同创作</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+            <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <a href="/settings.html" class="nav-item active" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">⚙️ 系统配置</div>
+      <div class="topbar-actions">
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- AI 基础配置 -->
+      <div class="card">
+        <div class="card-title">
+          <span>🔑</span>
+          <span>AI 基础配置</span>
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="cfg-aikey">API Key</label>
+          <input type="password" id="cfg-aikey" class="form-input" placeholder="sk-..." autocomplete="off">
+          <div class="form-hint">仅保存末尾 8 位可见，提交时若值为掩码（以 * 开头）则不会覆盖原密钥。</div>
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="cfg-aibase">Base URL</label>
+          <input type="text" id="cfg-aibase" class="form-input" placeholder="https://api.deepseek.com">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="cfg-aimodel">默认模型</label>
+          <input type="text" id="cfg-aimodel" class="form-input" placeholder="deepseek-chat">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveConfig()">💾 保存 AI 配置</button>
+        </div>
+      </div>
+
+      <!-- AI 模型管理 -->
+      <div class="card">
+        <div class="card-title">
+          <span>🤖</span>
+          <span>AI 模型管理</span>
+          <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openAIModelModal()">+ 新增模型</button>
+        </div>
+        <div class="form-hint" style="margin-bottom:16px">管理多个大模型，支持不同厂商与用途。设为默认后，新建创作将优先使用该模型。</div>
+        <div id="ai-model-list">
+          <div style="color:var(--text2);font-size:14px;text-align:center;padding:30px;">加载中...</div>
+        </div>
+      </div>
+
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<!-- AI 模型 编辑/新增 模态框 -->
+<div class="modal-overlay" id="ai-model-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title" id="ai-model-modal-title">新增 AI 模型</div>
+      <button class="modal-close" onclick="closeModal('ai-model-modal')">✕</button>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="ai-model-name">显示名称</label>
+      <input type="text" id="ai-model-name" class="form-input" placeholder="如：DeepSeek 对话">
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="ai-model-provider">厂商</label>
+      <select id="ai-model-provider" class="form-select">
+        <option value="openai">OpenAI</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="google">Google</option>
+        <option value="zhipu">智谱</option>
+        <option value="baidu">百度</option>
+        <option value="alibaba">阿里</option>
+        <option value="bytedance">字节</option>
+        <option value="custom">自定义</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="ai-model-model">模型标识</label>
+      <input type="text" id="ai-model-model" class="form-input" placeholder="如：deepseek-chat">
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="ai-model-api-key">API Key</label>
+      <input type="password" id="ai-model-api-key" class="form-input" placeholder="编辑时留空则保留原密钥" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="ai-model-base-url">Base URL（可选）</label>
+      <input type="text" id="ai-model-base-url" class="form-input" placeholder="留空使用厂商默认">
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="ai-model-is-image">用途</label>
+      <label class="form-checkbox">
+        <input type="checkbox" id="ai-model-is-image">
+        <span>图像模型（用于文生图）</span>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('ai-model-modal')">取消</button>
+      <button class="btn btn-primary" id="ai-model-save-btn" onclick="saveAIModel()">💾 保存模型</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+<script src="/common.js"></script>
+<script>
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    if (item.getAttribute("href") === currentPage) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  loadAccounts().then(() => {
+    loadAIConfigForm();
+    loadAIModels();
+  });
+  startSSE();
+});
+</script>
+
+</body>
+</html>

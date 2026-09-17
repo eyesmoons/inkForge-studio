@@ -1,0 +1,217 @@
+/* ============================================================
+   collaborative.css — 墨锻工坊 · 创作工作台
+   风格与 common.css 全局亮色主题统一：白云石白底 + 绿色强调
+   ============================================================ */
+
+/* ── 背景：干净浅底 + 微妙网格 ── */
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(4,120,87,0.05), transparent 60%),
+    radial-gradient(960px 480px at 100% 0%, rgba(37,99,235,0.04), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(20,24,40,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20,24,40,0.035) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* ── 侧边栏：浅底 + 细边框 ── */
+.sidebar {
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+}
+.sidebar-logo h1 {
+  color: var(--text);
+  letter-spacing: 1px; font-weight: 700;
+}
+.sidebar-logo p { color: var(--text2); }
+.nav-item {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.nav-item:hover {
+  background: var(--bg2); color: var(--text);
+  border-color: var(--border);
+}
+.nav-item.active, .nav-item[style*="rgb"] {
+  background: rgba(4,120,87,0.10) !important;
+  color: var(--accent) !important;
+  border-color: rgba(4,120,87,0.25) !important;
+  font-weight: 600;
+}
+.nav-group-label { color: var(--text2); }
+
+/* ── 顶栏 ── */
+.topbar {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-title {
+  font-weight: 600; letter-spacing: .5px;
+  color: var(--text);
+}
+
+/* ── 卡片：白底 + 轻边框 + 轻阴影 ── */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: border-color .2s, box-shadow .2s;
+}
+.card:hover {
+  border-color: rgba(4,120,87,0.30);
+  box-shadow: 0 6px 24px rgba(20,24,40,0.10);
+}
+.card-title {
+  font-weight: 600; letter-spacing: .4px;
+  color: var(--text);
+}
+
+/* ── 主按钮：绿色填充 ── */
+.btn-primary {
+  background: var(--accent); color: #fff;
+  border: 1px solid transparent;
+  font-weight: 600; letter-spacing: .4px;
+  box-shadow: 0 4px 14px rgba(4,120,87,0.25);
+  transition: background .2s, box-shadow .2s, transform .15s;
+}
+.btn-primary:hover {
+  background: var(--accent2);
+  box-shadow: 0 6px 18px rgba(4,120,87,0.30);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
+
+/* 次按钮：浅底描边 */
+.btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: border-color .18s, background .2s, color .18s;
+}
+.btn:hover {
+  border-color: var(--accent); color: var(--accent);
+  background: rgba(4,120,87,0.05);
+}
+.btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+
+/* ── 输入框：浅底 + 聚焦绿光 ── */
+textarea, input[type="text"] {
+  background: var(--bg);
+  border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; transition: border-color .2s, box-shadow .2s;
+}
+textarea:focus, input[type="text"]:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(4,120,87,0.12);
+}
+
+/* ── 创作流程导航（步骤条）── */
+.step-bar { display: flex; align-items: center; padding: 6px 8px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 2px 8px; border-radius: 8px; transition: transform .2s; }
+.step:hover { transform: translateY(-2px); }
+.step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; border: 2px solid var(--border); color: var(--text2); background: var(--bg); transition: all .3s; }
+.step-label { font-size: 12px; color: var(--text2); font-weight: 500; letter-spacing: .3px; white-space: nowrap; transition: color .3s; }
+
+/* 已完成步骤：绿色填充 */
+.step.done .step-num { background: var(--accent); color: #fff; border-color: transparent; }
+.step.done .step-label { color: var(--text); }
+/* 当前步骤：强调放大 */
+.step.active .step-num { background: var(--accent2); color: #fff; border-color: transparent; transform: scale(1.12); }
+.step.active .step-label { color: var(--accent); font-weight: 600; }
+
+/* 步骤间箭头 */
+.step-arrow { flex: 1 1 auto; height: 4px; min-width: 44px; max-width: 120px; margin: 0 -6px; position: relative; top: -10px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.step-arrow::before { content: ''; position: absolute; right: -7px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 10px solid var(--border); transition: border-left-color .4s; }
+.step-arrow.done { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.step-arrow.done::before { border-left-color: var(--accent2); }
+
+/* ── 选题卡片 ── */
+.topic-card {
+  background: var(--bg);
+  border: 1px solid var(--border); border-radius: 10px;
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+.topic-card:hover {
+  border-color: rgba(4,120,87,0.30); transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(20,24,40,0.08);
+}
+.topic-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(4,120,87,0.12);
+  background: rgba(4,120,87,0.04);
+}
+
+/* ── 大纲树 ── */
+.outline-node { border-radius: 8px; transition: background .15s; }
+.outline-node:hover { background: var(--bg2); }
+.outline-node.selected { background: rgba(4,120,87,0.10); }
+.outline-row { border-bottom: 1px dashed var(--border); }
+
+.badge {
+  background: rgba(4,120,87,0.10); color: var(--accent);
+  border: 1px solid rgba(4,120,87,0.25);
+}
+.badge-auto { background: rgba(37,99,235,0.10); color: var(--blue); border-color: rgba(37,99,235,0.25); }
+
+/* ── 进度指示器 ── */
+#content-progress {
+  color: var(--accent) !important; font-variant-numeric: tabular-nums; font-weight: 600;
+}
+
+/* ── 段落编辑（右侧整体编辑框）── */
+.content-paragraph {
+  border: 1px solid transparent; border-radius: 8px;
+  transition: border-color .2s, box-shadow .2s;
+  line-height: 1.7; color: var(--text); text-indent: 2em; margin: 0;
+  font-family: inherit; font-size: inherit;
+}
+.content-paragraph:hover { border-color: rgba(4,120,87,0.30); box-shadow: 0 2px 10px rgba(20,24,40,0.06); }
+.content-paragraph:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(4,120,87,0.12); outline: none; }
+
+/* ── 空状态 ── */
+.dash-recent-empty { color: var(--text2); }
+
+/* ── 用户头像 ── */
+.user-avatar {
+  background: var(--accent); color: #fff; font-weight: 700;
+}
+
+/* ── 滚动条 ── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(20,24,40,0.18);
+  border-radius: 8px; border: 2px solid transparent; background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(20,24,40,0.30); background-clip: content-box; }
+
+/* ── 选中高亮 ── */
+::selection { background: rgba(4,120,87,0.20); color: var(--text); }
+
+/* ── 微动画：卡片入场 ── */
+@keyframes tb-fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card { animation: tb-fadeUp .35s ease both; }
+.card:nth-child(2) { animation-delay: .04s; }
+.card:nth-child(3) { animation-delay: .08s; }
+.card:nth-child(4) { animation-delay: .12s; }
+
+/* ── 顶栏状态点脉冲 ── */
+.dot-green { box-shadow: 0 0 0 0 rgba(4,120,87,0.4); animation: tb-pulse 2s infinite; }
+@keyframes tb-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(4,120,87,0.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(4,120,87,0); }
+  100% { box-shadow: 0 0 0 0 rgba(4,120,87,0); }
+}

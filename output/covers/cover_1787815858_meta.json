@@ -1,0 +1,8 @@
+{
+  "title": "",
+  "style": "",
+  "size": "",
+  "prompt": "WeChat article cover image, subject: 美团开源1.6万亿参数大模型，免费送1000万token — 送外卖的，突然甩出一张王炸。\n\n先别划走，我真不是标题党。就前两天，美团开源了一个大模型，叫 LongCat-2.0。参数多少？1.6 万亿。训练它用的什么？五万张国产算力芯片。原生支持多长的上下文？一百万 token。\n\n这组数字什么意思？翻译成人话就是：你手里那份三百页的项目文档，它一口气全读完，还能给你总结出个一二三四五。\n\n更狠的是，这玩意儿在 OpenRouter 上的调用量，一度冲进了. Clean minimalist business cover, solid or subtle gradient background, lots of white space, bold modern Chinese typography as the visual focus, no decorative elements, professional and elegant, editorial magazine style. CRITICAL RULES: Do NOT include any text, letters, Chinese characters, or watermarks in the image. Do NOT generate overly smooth, plastic-like, or hyper-saturated AI-art style. Aim for photorealistic or high-quality editorial illustration style. Natural lighting, natural textures, subtle imperfections are preferred. Avoid shiny/glossy effects. Avoid rainbow gradients. Avoid 3D rendered look. The image should look like it was taken by a professional photographer or designed by a human graphic designer.",
+  "filename": "cover_1787815858.png",
+  "created_at": "2026-08-27 15:31:00"
+}

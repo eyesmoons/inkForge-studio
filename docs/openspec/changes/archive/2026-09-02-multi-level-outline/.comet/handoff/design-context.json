@@ -1,0 +1,14 @@
+{
+  "change": "multi-level-outline",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "ef99dcaea3d03db392f9435da2d857491f060a402560823454d6b58b42bd8daf",
+  "files": [
+    { "path": "docs/openspec/changes/multi-level-outline/proposal.md", "sha256": "4900a296e469a37f8851121d89b044b553b49315f7c62d578dad39267f230327" },
+    { "path": "docs/openspec/changes/multi-level-outline/design.md", "sha256": "6b112a19cdc08a0cd8fe1d043996d3eb2b17f890b5eb552e4f86ad840015b234" },
+    { "path": "docs/openspec/changes/multi-level-outline/tasks.md", "sha256": "fc61e78d9cdfb65c7dbdf5214b3f22ba5978024a962a1271e24d3c9519bd90f5" },
+    { "path": "docs/openspec/changes/multi-level-outline/specs/collaborative-workbench/spec.md", "sha256": "f8957f1b2f2cd494a4fd6786282fd2132d197106b85c089708c959a0291aedfe" }
+  ]
+}

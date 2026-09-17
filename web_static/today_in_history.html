@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>历史上的今天 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<link rel="stylesheet" href="/today_in_history.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔥</div>
+      <h1>墨锻工坊</h1>
+      <p>AI 辅助内容工作台</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/collaborative" class="nav-item" data-title="协同创作"><span class="icon">📝</span> 协同创作</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item active" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+            <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <a href="/settings.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">📅 历史上的今天</div>
+      <div class="topbar-actions">
+        <span id="current-date" class="date-display"></span>
+        <button class="btn btn-primary" onclick="refreshData()">🔄 刷新</button>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 统计卡片 -->
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div class="stat-icon">📜</div>
+          <div class="stat-info">
+            <div class="stat-value" id="total-events">-</div>
+            <div class="stat-label">历史事件</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👶</div>
+          <div class="stat-info">
+            <div class="stat-value" id="birth-count">-</div>
+            <div class="stat-label">出生人物</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚔️</div>
+          <div class="stat-info">
+            <div class="stat-value" id="war-count">-</div>
+            <div class="stat-label">战争/政治</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔬</div>
+          <div class="stat-info">
+            <div class="stat-value" id="tech-count">-</div>
+            <div class="stat-label">科技/文化</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 筛选标签 -->
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-filter="all">全部</button>
+        <button class="tab-btn" data-filter="出生">👶 出生</button>
+        <button class="tab-btn" data-filter="逝世">🕯️ 逝世</button>
+        <button class="tab-btn" data-filter="战争">⚔️ 战争</button>
+        <button class="tab-btn" data-filter="政治">🏛️ 政治</button>
+        <button class="tab-btn" data-filter="科技">🔬 科技</button>
+        <button class="tab-btn" data-filter="文化">🎭 文化</button>
+        <button class="tab-btn" data-filter="体育">🏆 体育</button>
+        <button class="tab-btn" data-filter="灾难">⚠️ 灾难</button>
+      </div>
+
+      <!-- 时间轴 -->
+      <div class="timeline-container" id="timeline-container">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/common.js"></script>
+<script src="/today_in_history.js"></script>
+</body>
+</html>

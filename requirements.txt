@@ -1,0 +1,33 @@
+# 微信公众号自动发布系统依赖
+# 安装方式: pip install -r requirements.txt
+
+# Web 框架
+flask>=2.3.0
+
+# HTTP 请求
+requests>=2.31.0
+
+# Markdown 转换
+mistune>=3.0.0
+
+# CSS 内联（微信不支持外链样式）
+premailer>=3.10.0
+
+# 图片处理（封面生成）
+Pillow>=10.0.0
+
+# 中文分词（关键词提取）
+jieba>=0.42.1
+
+# 二维码生成（微信扫码登录）
+qrcode>=7.4.0
+
+# 定时任务调度器
+apscheduler>=3.10.0
+
+# 原生 WebView（嵌入式窗口）
+pywebview>=5.0.0
+
+# 网页内容提取（链接改写功能）
+beautifulsoup4>=4.12.0
+readability-lxml>=0.8.0

@@ -1,0 +1,1785 @@
+---
+change: inkforge-collaborative-writing
+design-doc: docs/superpowers/specs/2026-08-31-collaborative-writing-design.md
+base-ref: no-git
+---
+
+# 人机协同创作工作台 实施计划
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 在现有 Flask 墨锻工坊上新增"人机协同创作工作台"，驱动「想法 → 选题 → 大纲 → 内容 → 保存到历史文章」流程，创作者主导决策、AI 辅助建议；同时移除平台专属功能（微信草稿推送、MD 转平台 HTML、封面生成）。
+
+**Architecture:** 在现有 `web_app.py` 上新增协同创作蓝图（路由前缀 `/collaborative`、API 前缀 `/api/collaborative`），新增 `version_manager` / `article_history` / `ai_labeler` 三个模块并扩展 `ai_writer`；`user_db.py` 新增 4 张表。前端在 `templates/collaborative/` 与 `web_static/` 新增工作台单页多阶段界面（选题/大纲/内容/保存 + 版本历史侧边栏）。AI 交互采用同步 POST + 前端加载状态（Flask 超时 120s）。
+
+**Tech Stack:** Flask 2.3+、SQLite（`user_db.py` / `UserDB` 单例）、requests、pytest（新增测试基础设施）、原生 JavaScript（与现有 `web_static/common.js` 风格一致）。
+
+**Spec:** docs/superpowers/specs/2026-08-31-collaborative-writing-design.md
+
+## Global Constraints
+
+- 数据库访问统一走 `modules/user_db.py` 的 `UserDB` 类（上下文管理器 `with UserDB() as db:`），表创建集中在 `_init_db()`，迁移沿用 `try/except sqlite3.OperationalError` + `ALTER TABLE` 模式。
+- LLM 调用统一走 `ai_writer._detect_llm_backend(user_id)` → `_call_openai` / `_call_ollama`，无可用后端时 fallback 到内置模板；禁止绕过该检测逻辑直接请求外部 API。
+- 登录态校验复用 `web_app.py` 的 `_get_session_id()` + `get_current_user(session_id)`，无会话返回 401 或重定向 `/login.html`。
+- AI 标识由后端 `save-article` 强制附加并校验，前端不可绕过；`ai_label_config` 为单条记录，默认文案 `本文由 AI 辅助生成，请仔细甄别文章内容。`
+- 自动版本快照保留最近 20 个，更早仅保留关键节点；手动标记无限制。
+- 范围严格以 `docs/openspec/changes/inkforge-collaborative-writing/tasks.md` 为准，不扩展。
+- 测试使用 pytest，LLM 调用必须 mock（`unittest.mock.patch`），不依赖外部 API；无 API key 时走内置模板 fallback 路径。
+
+---
+
+## 阶段一：数据库与基础设施
+
+### Task 1: 新增协同创作相关 4 张数据表
+
+**Files:**
+- Modify: `modules/user_db.py:59-336`（`_init_db()` 表创建区间末尾、索引创建之前）
+- Test: `tests/test_user_db_tables.py`（新建）
+
+**Interfaces:**
+- Consumes: 现有 `UserDB._init_db()`、`UserDB._connect()`、`self.conn.cursor()`
+- Produces: `collaborative_projects` / `article_history` / `version_snapshots` / `ai_label_config` 四张表；`ai_label_config` 默认一行记录（id=1）
+
+- [ ] **Step 1: 编写建表失败的回归测试**
+
+在 `tests/test_user_db_tables.py` 新建文件，使用临时 SQLite 数据库验证四张表可创建且字段正确：
+
+```python
+import os, sys, sqlite3, tempfile
+import pytest
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, ROOT)
+
+@pytest.fixture
+def tmp_db(tmp_path, monkeypatch):
+    # 用临时数据库隔离测试，避免污染 users.db
+    from modules import user_db
+    monkeypatch.setattr(user_db, "DB_PATH", tmp_path / "test.db")
+    # 重置单例，强制重新建库
+    monkeypatch.setattr(user_db, "_db_instance", None)
+    db = user_db.UserDB()
+    yield db
+
+def test_collaborative_projects_schema(tmp_db):
+    cur = tmp_db.conn.cursor()
+    cur.execute("PRAGMA table_info(collaborative_projects)")
+    cols = {r["name"] for r in cur.fetchall()}
+    assert {"id","user_id","title","current_phase","topic_json","outline_json","content_json","created_at","updated_at"} <= cols
+    cur.execute("SELECT COUNT(*) FROM collaborative_projects")
+    assert cur.fetchone()[0] == 0
+
+def test_article_history_schema(tmp_db):
+    cur = tmp_db.conn.cursor()
+    cur.execute("PRAGMA table_info(article_history)")
+    cols = {r["name"] for r in cur.fetchall()}
+    assert {"id","user_id","title","topic_json","outline_json","content_json","ai_label","created_at","updated_at"} <= cols
+
+def test_version_snapshots_schema(tmp_db):
+    cur = tmp_db.conn.cursor()
+    cur.execute("PRAGMA table_info(version_snapshots)")
+    cols = {r["name"] for r in cur.fetchall()}
+    assert {"id","project_id","user_id","version_name","content_json","trigger_type","created_at"} <= cols
+
+def test_ai_label_config_default_row(tmp_db):
+    cur = tmp_db.conn.cursor()
+    cur.execute("PRAGMA table_info(ai_label_config)")
+    cols = {r["name"] for r in cur.fetchall()}
+    assert {"id","label_text","updated_at","updated_by"} <= cols
+    cur.execute("SELECT label_text FROM ai_label_config WHERE id = 1")
+    row = cur.fetchone()
+    assert row is not None
+    assert "AI" in row["label_text"]
+```
+
+- [ ] **Step 2: 运行测试确认失败**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_user_db_tables.py -v`
+Expected: FAIL（`collaborative_projects` 等表尚未创建，`PRAGMA` 抛 `OperationalError`）
+
+- [ ] **Step 3: 在 `_init_db()` 末尾追加 4 张表 + 默认标识 + 索引**
+
+在 `modules/user_db.py` 的 `_init_db()` 内，`writing_skills` 表创建之后、"数据库迁移"区块之前，追加：
+
+```python
+        # 协同创作项目表
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS collaborative_projects (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT,
+                current_phase TEXT NOT NULL DEFAULT 'topic',
+                topic_json TEXT,
+                outline_json TEXT,
+                content_json TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        """)
+
+        # 历史文章表
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS article_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                topic_json TEXT,
+                outline_json TEXT,
+                content_json TEXT,
+                ai_label TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        """)
+
+        # 版本快照表
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS version_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                version_name TEXT,
+                content_json TEXT NOT NULL,
+                trigger_type TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (project_id) REFERENCES collaborative_projects (id),
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        """)
+
+        # AI 标识配置表（单条记录）
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ai_label_config (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                label_text TEXT NOT NULL DEFAULT '本文由 AI 辅助生成，请仔细甄别文章内容。',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_by INTEGER REFERENCES users (id)
+            )
+        """)
+        cur.execute("SELECT COUNT(*) FROM ai_label_config")
+        if cur.fetchone()[0] == 0:
+            cur.execute(
+                "INSERT INTO ai_label_config (id, label_text) VALUES (1, ?)",
+                ("本文由 AI 辅助生成，请仔细甄别文章内容。",)
+            )
+            self.conn.commit()
+```
+
+在"创建索引"区块追加：
+
+```python
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_collab_projects_user_id ON collaborative_projects(user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_collab_projects_updated_at ON collaborative_projects(updated_at)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_article_history_user_id ON article_history(user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_article_history_created_at ON article_history(created_at)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_version_snapshots_project_id ON version_snapshots(project_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_version_snapshots_created_at ON version_snapshots(created_at)")
+```
+
+- [ ] **Step 4: 运行测试确认通过**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_user_db_tables.py -v`
+Expected: 4 PASS
+
+- [ ] **Step 5: 提交**
+
+```bash
+cd /Users/casey/workspace/inkForge-studio
+git add modules/user_db.py tests/test_user_db_tables.py
+git commit -m "feat(db): add collaborative_projects/article_history/version_snapshots/ai_label_config tables"
+```
+
+> 注：本项目无 git 仓库，实际执行时跳过 `git` 命令，仅保存文件与测试。下同。
+
+---
+
+### Task 2: 搭建 pytest 测试基础设施
+
+**Files:**
+- Create: `tests/__init__.py`
+- Create: `tests/conftest.py`
+- Create: `pytest.ini`
+
+**Interfaces:**
+- Consumes: `modules/user_db`、`UserDB`、`DB_PATH`
+- Produces: `tests/conftest.py` 的 `app`（Flask test client）与 `tmp_db` fixtures，供后续所有任务复用
+
+- [ ] **Step 1: 创建 `tests/__init__.py`**
+
+空文件，使 `tests/` 为 package。
+
+- [ ] **Step 2: 创建 `pytest.ini`**
+
+```ini
+[pytest]
+testpaths = tests
+python_files = test_*.py
+python_functions = test_*
+addopts = -v --tb=short
+```
+
+- [ ] **Step 3: 创建 `tests/conftest.py`**
+
+```python
+import os, sys, tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+import pytest
+from modules import user_db
+
+
+@pytest.fixture
+def tmp_db_path(tmp_path, monkeypatch):
+    """隔离的临时数据库，重置 UserDB 单例。"""
+    monkeypatch.setattr(user_db, "DB_PATH", tmp_path / "test.db")
+    monkeypatch.setattr(user_db, "_db_instance", None)
+    yield tmp_path / "test.db"
+
+
+@pytest.fixture
+def db(tmp_db_path):
+    yield user_db.UserDB()
+
+
+@pytest.fixture
+def app(tmp_db_path):
+    """Flask test client。注意：web_app 在导入时读取 DB_PATH，故先设好 tmp_db_path。"""
+    os.environ.setdefault("FLASK_SECRET_KEY", "test-secret")
+    from web_app import app as flask_app
+    flask_app.config["TESTING"] = True
+    with flask_app.test_client() as client:
+        yield client
+```
+
+- [ ] **Step 4: 验证基础设施可用**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_user_db_tables.py -v`
+Expected: 与 Task 1 一致的 4 PASS（conftest 不破坏既有测试）
+
+- [ ] **Step 5: 提交**
+
+```bash
+git add tests/__init__.py tests/conftest.py pytest.ini
+git commit -m "test: add pytest infrastructure (conftest, fixtures, ini)"
+```
+
+---
+
+### Task 3: 新增 version_manager 模块
+
+**Files:**
+- Create: `modules/version_manager.py`
+- Test: `tests/test_version_manager.py`
+
+**Interfaces:**
+- Consumes: `modules/user_db.get_db`、`UserDB` 连接、`version_snapshots` 表
+- Produces: `create_snapshot(project_id, user_id, version_name, content_json, trigger_type) -> int`；`list_versions(project_id) -> list[dict]`；`get_version(version_id) -> dict`；`compare_versions(v1_id, v2_id) -> dict`；`rollback_to_version(version_id, user_id) -> int`
+
+- [ ] **Step 1: 编写 version_manager 失败的回归测试**
+
+```python
+import pytest, json
+from modules import version_manager
+
+def _project(db, user_id=1):
+    cur = db.conn.cursor()
+    cur.execute("INSERT INTO collaborative_projects (user_id, current_phase) VALUES (?, 'topic')", (user_id,))
+    db.conn.commit()
+    return cur.lastrowid
+
+def test_create_snapshot(db):
+    pid = _project(db)
+    vid = version_manager.create_snapshot(pid, 1, "选题确认", {"topic": "t"}, "manual")
+    assert isinstance(vid, int) and vid > 0
+
+def test_list_versions_order(db):
+    pid = _project(db)
+    version_manager.create_snapshot(pid, 1, "a", {"n": 1}, "auto_topic")
+    version_manager.create_snapshot(pid, 1, "b", {"n": 2}, "auto_outline")
+    vs = version_manager.list_versions(pid)
+    assert len(vs) == 2
+    # 按时间倒序
+    assert vs[0]["created_at"] >= vs[1]["created_at"]
+
+def test_get_version(db):
+    pid = _project(db)
+    vid = version_manager.create_snapshot(pid, 1, "x", {"k": "v"}, "manual")
+    v = version_manager.get_version(vid)
+    assert v["version_name"] == "x"
+    assert json.loads(v["content_json"]) == {"k": "v"}
+
+def test_compare_versions(db):
+    pid = _project(db)
+    v1 = version_manager.create_snapshot(pid, 1, "v1", {"sections": [{"id": "1", "content": "A"}]}, "auto_content")
+    v2 = version_manager.create_snapshot(pid, 1, "v2", {"sections": [{"id": "1", "content": "B"}]}, "auto_content")
+    diff = version_manager.compare_versions(v1, v2)
+    assert "sections" in diff
+    changes = diff["sections"]
+    assert any(c.get("id") == "1" and c.get("old") == "A" and c.get("new") == "B" for c in changes)
+
+def test_rollback_creates_new_snapshot(db):
+    pid = _project(db)
+    v1 = version_manager.create_snapshot(pid, 1, "v1", {"n": 1}, "auto_topic")
+    new_id = version_manager.rollback_to_version(v1, 1)
+    assert new_id != v1
+    new = version_manager.get_version(new_id)
+    assert json.loads(new["content_json"]) == {"n": 1}
+    assert new["trigger_type"] == "manual"
+
+def test_auto_snapshot_cap_at_20(db):
+    pid = _project(db)
+    for i in range(25):
+        version_manager.create_snapshot(pid, 1, f"s{i}", {"n": i}, "auto_content")
+    vs = version_manager.list_versions(pid)
+    auto = [v for v in vs if v["trigger_type"].startswith("auto")]
+    assert len(auto) == 20
+    # 保留最新的 20 个
+    nums = [json.loads(v["content_json"])["n"] for v in auto]
+    assert min(nums) == 5 and max(nums) == 24
+```
+
+- [ ] **Step 2: 运行测试确认失败**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_version_manager.py -v`
+Expected: FAIL（模块不存在）
+
+- [ ] **Step 3: 实现 `modules/version_manager.py`**
+
+```python
+import json
+from datetime import datetime
+from typing import Dict, List, Optional
+from modules.user_db import get_db
+
+
+def create_snapshot(project_id: int, user_id: int, version_name: str,
+                    content_json: dict, trigger_type: str) -> int:
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            """INSERT INTO version_snapshots
+               (project_id, user_id, version_name, content_json, trigger_type)
+               VALUES (?, ?, ?, ?, ?)""",
+            (project_id, user_id, version_name, json.dumps(content_json, ensure_ascii=False), trigger_type),
+        )
+        db.conn.commit()
+        sid = cur.lastrowid
+    # 仅对自动快照做 20 个上限裁剪
+    if trigger_type.startswith("auto"):
+        _cap_auto_snapshots(project_id)
+    return sid
+
+
+def _cap_auto_snapshots(project_id: int, cap: int = 20):
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            """DELETE FROM version_snapshots WHERE id NOT IN (
+                 SELECT id FROM version_snapshots
+                 WHERE project_id = ? AND trigger_type LIKE 'auto%'
+                 ORDER BY created_at DESC, id DESC LIMIT ?
+               ) AND project_id = ? AND trigger_type LIKE 'auto%'""",
+            (cap, project_id, project_id),
+        )
+        db.conn.commit()
+
+
+def list_versions(project_id: int) -> List[Dict]:
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            """SELECT id, project_id, user_id, version_name, content_json, trigger_type, created_at
+               FROM version_snapshots WHERE project_id = ?
+               ORDER BY created_at DESC, id DESC""",
+            (project_id,),
+        )
+        return [dict(r) for r in cur.fetchall()]
+
+
+def get_version(version_id: int) -> Optional[Dict]:
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            """SELECT id, project_id, user_id, version_name, content_json, trigger_type, created_at
+               FROM version_snapshots WHERE id = ?""",
+            (version_id,),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def compare_versions(v1_id: int, v2_id: int) -> Dict:
+    a = get_version(v1_id)
+    b = get_version(v2_id)
+    if not a or not b:
+        raise ValueError("版本不存在")
+    c1 = json.loads(a["content_json"])
+    c2 = json.loads(b["content_json"])
+    return _diff_content(c1, c2)
+
+
+def _diff_content(c1: dict, c2: dict) -> dict:
+    """对 content_json 做浅层 diff：以 sections 数组按 id 匹配，列出字段变更。"""
+    diff = {}
+    if "sections" in c1 or "sections" in c2:
+        s1 = {s.get("id"): s for s in (c1.get("sections") or [])}
+        s2 = {s.get("id"): s for s in (c2.get("sections") or [])}
+        changes = []
+        for sid in set(s1) | set(s2):
+            if s1.get(sid) != s2.get(sid):
+                changes.append({"id": sid, "old": s1.get(sid), "new": s2.get(sid)})
+        diff["sections"] = changes
+    for key in set(c1) | set(c2):
+        if key == "sections":
+            continue
+        if c1.get(key) != c2.get(key):
+            diff[key] = {"old": c1.get(key), "new": c2.get(key)}
+    return diff
+
+
+def rollback_to_version(version_id: int, user_id: int) -> int:
+    v = get_version(version_id)
+    if not v:
+        raise ValueError("版本不存在")
+    return create_snapshot(
+        project_id=v["project_id"],
+        user_id=user_id,
+        version_name=f"回溯自 {v['version_name'] or version_id}",
+        content_json=json.loads(v["content_json"]),
+        trigger_type="manual",
+    )
+```
+
+- [ ] **Step 4: 运行测试确认通过**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_version_manager.py -v`
+Expected: 6 PASS
+
+- [ ] **Step 5: 提交**
+
+```bash
+git add modules/version_manager.py tests/test_version_manager.py
+git commit -m "feat: add version_manager module (snapshot/list/compare/rollback, cap 20)"
+```
+
+---
+
+## 阶段二：AI 辅助能力与标识 / 历史文章模块
+
+### Task 4: 扩展 ai_writer — 三个新生成函数
+
+**Files:**
+- Modify: `modules/ai_writer.py`（在 `generate_article` 之后追加）
+- Test: `tests/test_ai_writer_collab.py`
+
+**Interfaces:**
+- Consumes: `_detect_llm_backend`、`_call_openai`、`_call_ollama`、`_call_template`
+- Produces: `generate_topics(idea, count=5, user_id=None) -> list[dict]`（每项 `{title, description}`）；`generate_outline(topic, context=None, user_id=None) -> dict`（`{sections:[{id, title, points, children}]}`）；`generate_content(outline, section=None, user_id=None) -> dict`（`{sections:[{id, title, content, status}]}`）
+
+- [ ] **Step 1: 编写失败的回归测试（mock LLM）**
+
+```python
+import json
+from unittest.mock import patch
+from modules import ai_writer
+
+def _topics_prompt_ok(*args, **kwargs):
+    return json.dumps([{"title": "t1", "description": "d1"}, {"title": "t2", "description": "d2"}], ensure_ascii=False)
+
+def _outline_prompt_ok(*args, **kwargs):
+    return json.dumps({"sections": [{"id": "s1", "title": "章节", "points": ["p1"], "children": []}]}, ensure_ascii=False)
+
+def _content_prompt_ok(*args, **kwargs):
+    return json.dumps({"sections": [{"id": "s1", "title": "章节", "content": "正文", "status": "generated"}]}, ensure_ascii=False)
+
+def test_generate_topics():
+    with patch("modules.ai_writer._detect_llm_backend", return_value=("openai", {"api_key":"k","api_base":"https://x","model":"m"})), \
+         patch("modules.ai_writer._call_openai", side_effect=_topics_prompt_ok):
+        topics = ai_writer.generate_topics("AI 手机", count=2)
+    assert isinstance(topics, list) and len(topics) == 2
+    assert {"title", "description"} <= set(topics[0])
+
+def test_generate_outline():
+    with patch("modules.ai_writer._detect_llm_backend", return_value=("ollama", {"model":"qwen"})), \
+         patch("modules.ai_writer._call_ollama", side_effect=_outline_prompt_ok):
+        outline = ai_writer.generate_outline("AI 手机")
+    assert "sections" in outline and outline["sections"][0]["id"] == "s1"
+
+def test_generate_content_full_and_section():
+    with patch("modules.ai_writer._detect_llm_backend", return_value=("openai", {"api_key":"k","api_base":"https://x","model":"m"})), \
+         patch("modules.ai_writer._call_openai", side_effect=_content_prompt_ok):
+        full = ai_writer.generate_content({"sections": [{"id":"s1","title":"x"}]})
+        partial = ai_writer.generate_content({"sections": [{"id":"s1","title":"x"}]}, section="s1")
+    assert full["sections"][0]["content"] == "正文"
+    assert partial["sections"][0]["id"] == "s1"
+
+def test_fallback_to_template_when_no_llm():
+    # 后端为 template 时，应走内置模板，不抛异常
+    with patch("modules.ai_writer._detect_llm_backend", return_value=("template", {})):
+        topics = ai_writer.generate_topics("AI 手机")
+        outline = ai_writer.generate_outline("AI 手机")
+        content = ai_writer.generate_content({"sections": [{"id":"s1","title":"x"}]})
+    assert isinstance(topics, list) and len(topics) > 0
+    assert "sections" in outline
+    assert isinstance(content.get("sections"), list)
+```
+
+- [ ] **Step 2: 运行测试确认失败**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_ai_writer_collab.py -v`
+Expected: FAIL（函数未定义）
+
+- [ ] **Step 3: 在 `ai_writer.py` 追加三个函数**
+
+在 `generate_article` 之后追加。三个函数统一：检测后端 → 构造 prompt → 调用 LLM → `json.loads` 解析并做结构校验/补全；`backend == "template"` 时走内置模板 fallback。
+
+```python
+def generate_topics(idea: str, count: int = 5, user_id: int = None) -> List[Dict]:
+    """根据想法生成多个选题建议。返回 [{title, description}, ...]（3-5 个）。"""
+    backend, cfg = _detect_llm_backend(user_id)
+    prompt = (
+        f"你是一位资深内容策划。创作者的想法是：「{idea}」。\n"
+        f"请生成 {count} 个不同角度的选题，每个选题包含「标题」和「一句话说明」。\n"
+        "仅返回 JSON 数组，例如 [{\"title\": \"...\", \"description\": \"...\"}]，不要任何解释。"
+    )
+    if backend == "template":
+        return _fallback_topics(idea, count)
+    try:
+        raw = _call_openai(prompt, cfg) if backend == "openai" else _call_ollama(prompt, cfg)
+        data = json.loads(raw)
+        if not isinstance(data, list):
+            raise ValueError("not a list")
+        return [{"title": str(t.get("title", "")), "description": str(t.get("description", ""))} for t in data if t.get("title")][:count]
+    except Exception as e:
+        print(f"   ⚠️ 选题生成失败（{e}），使用内置模板")
+        return _fallback_topics(idea, count)
+
+
+def _fallback_topics(idea: str, count: int) -> List[Dict]:
+    seeds = [
+        {"title": f"深度解读：{idea}", "description": f"从行业格局深度剖析「{idea}」的来龙去脉。"},
+        {"title": f"实用指南：{idea} 怎么用", "description": f"面向普通读者，讲清「{idea}」的实际用法与影响。"},
+        {"title": f"观点评论：{idea} 意味着什么", "description": f"给出鲜明观点，评价「{idea}」的利与弊。"},
+        {"title": f"趋势前瞻：{idea} 的下一步", "description": f"基于现状推断「{idea}」未来 1-2 年的走向。"},
+        {"title": f"案例拆解：{idea} 落地实例", "description": f"用真实案例说明「{idea}」如何落地。"},
+    ]
+    return seeds[:count]
+
+
+def generate_outline(topic: str, context: str = None, user_id: int = None) -> Dict:
+    """基于选题生成结构化大纲。返回 {sections:[{id, title, points, children}]}。"""
+    backend, cfg = _detect_llm_backend(user_id)
+    prompt = (
+        f"你是一位资深内容策划。选题是：「{topic}」。"
+        + (f"补充背景：{context}\n" if context else "")
+        + "请生成结构化大纲，包含 3-6 个章节，每个章节有标题、若干要点（points），"
+        "可选子章节（children，结构同章节）。\n"
+        "仅返回 JSON，例如 {\"sections\": [{\"id\": \"s1\", \"title\": \"...\", \"points\": [\"...\"], \"children\": []}]}，不要任何解释。"
+    )
+    if backend == "template":
+        return _fallback_outline(topic)
+    try:
+        raw = _call_openai(prompt, cfg) if backend == "openai" else _call_ollama(prompt, cfg)
+        data = json.loads(raw)
+        data.setdefault("sections", [])
+        for i, s in enumerate(data["sections"], 1):
+            s.setdefault("id", f"s{i}")
+            s.setdefault("points", [])
+            s.setdefault("children", [])
+        return data
+    except Exception as e:
+        print(f"   ⚠️ 大纲生成失败（{e}），使用内置模板")
+        return _fallback_outline(topic)
+
+
+def _fallback_outline(topic: str) -> Dict:
+    return {"sections": [
+        {"id": "s1", "title": f"为什么「{topic}」值得关注", "points": ["背景与现状", "核心矛盾"], "children": []},
+        {"id": "s2", "title": f"「{topic}」的核心逻辑", "points": ["关键机制", "影响链条"], "children": []},
+        {"id": "s3", "title": "对我们的实际影响", "points": ["短期影响", "长期趋势"], "children": []},
+        {"id": "s4", "title": "结语", "points": ["总结与展望"], "children": []},
+    ]}
+
+
+def generate_content(outline: Dict, section: str = None, user_id: int = None) -> Dict:
+    """基于大纲生成内容。section 为 None 生成全部，否则仅生成该 id 段落。返回 {sections:[{id, title, content, status}]}。"""
+    backend, cfg = _detect_llm_backend(user_id)
+    target_sections = [s for s in outline.get("sections", []) if section is None or s.get("id") == section]
+    if not target_sections:
+        return {"sections": []}
+    prompt = (
+        "你是一位资深中文作者。请根据以下大纲章节生成正文段落。\n"
+        "要求：自然流畅的中文，避免 AI 套话，像真人写作；不要项目符号列表和表格。\n"
+        f"大纲 JSON：{json.dumps(target_sections, ensure_ascii=False)}\n"
+        "仅返回 JSON，例如 {\"sections\": [{\"id\": \"s1\", \"title\": \"...\", \"content\": \"...\", \"status\": \"generated\"}]}，不要任何解释。"
+    )
+    if backend == "template":
+        return _fallback_content(target_sections)
+    try:
+        raw = _call_openai(prompt, cfg) if backend == "openai" else _call_ollama(prompt, cfg)
+        data = json.loads(raw)
+        data.setdefault("sections", [])
+        for s in data["sections"]:
+            s.setdefault("status", "generated")
+        return data
+    except Exception as e:
+        print(f"   ⚠️ 内容生成失败（{e}），使用内置模板")
+        return _fallback_content(target_sections)
+
+
+def _fallback_content(sections: List[Dict]) -> Dict:
+    out = []
+    for s in sections:
+        title = s.get("title", "")
+        points = s.get("points", [])
+        body = "。".join(points) if points else f"本节围绕「{title}」展开。"
+        out.append({"id": s.get("id"), "title": title, "content": f"{body}。", "status": "generated"})
+    return {"sections": out}
+```
+
+> 注：需在 `ai_writer.py` 顶部已有 `import json`（已存在）和 `from typing import List, Dict`（按需补）。
+
+- [ ] **Step 4: 运行测试确认通过**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_ai_writer_collab.py -v`
+Expected: 4 PASS
+
+- [ ] **Step 5: 提交**
+
+```bash
+git add modules/ai_writer.py tests/test_ai_writer_collab.py
+git commit -m "feat(ai_writer): add generate_topics/outline/content with template fallback"
+```
+
+---
+
+### Task 5: 新增 ai_labeler 模块
+
+**Files:**
+- Create: `modules/ai_labeler.py`
+- Test: `tests/test_ai_labeler.py`
+
+**Interfaces:**
+- Consumes: `modules/user_db.get_db`、`ai_label_config` 表
+- Produces: `get_label_text() -> str`；`attach_label(content) -> str`；`validate_content(content) -> bool`；`set_label_text(new_text, admin_user) -> bool`（非管理员抛 `PermissionError`）
+
+- [ ] **Step 1: 编写失败的回归测试**
+
+```python
+import pytest
+from modules import ai_labeler
+
+DEFAULT = "本文由 AI 辅助生成，请仔细甄别文章内容。"
+
+def test_get_label_text_default(db):
+    assert ai_labeler.get_label_text() == DEFAULT
+
+def test_attach_label_appends(db):
+    out = ai_labeler.attach_label("正文内容")
+    assert "正文内容" in out
+    assert DEFAULT in out
+
+def test_validate_content_ok(db):
+    assert ai_labeler.validate_content("正文\n\n" + DEFAULT) is True
+
+def test_validate_content_fail(db):
+    assert ai_labeler.validate_content("没有标识的正文") is False
+
+def test_set_label_text_admin(db):
+    # admin_user 含 role=admin
+    ok = ai_labeler.set_label_text("新标识文案", {"id": 1, "role": "admin"})
+    assert ok is True
+    assert ai_labeler.get_label_text() == "新标识文案"
+
+def test_set_label_text_non_admin_forbidden(db):
+    with pytest.raises(PermissionError):
+        ai_labeler.set_label_text("hack", {"id": 2, "role": "user"})
+    assert ai_labeler.get_label_text() == DEFAULT
+```
+
+- [ ] **Step 2: 运行测试确认失败**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_ai_labeler.py -v`
+Expected: FAIL（模块不存在）
+
+- [ ] **Step 3: 实现 `modules/ai_labeler.py`**
+
+```python
+from typing import Dict
+from modules.user_db import get_db
+
+
+DEFAULT_LABEL = "本文由 AI 辅助生成，请仔细甄别文章内容。"
+
+
+def get_label_text() -> str:
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute("SELECT label_text FROM ai_label_config WHERE id = 1")
+        row = cur.fetchone()
+        if row and row["label_text"]:
+            return row["label_text"]
+    return DEFAULT_LABEL
+
+
+def attach_label(content: str) -> str:
+    label = get_label_text()
+    text = (content or "").rstrip()
+    if label in text:
+        return content
+    return f"{text}\n\n{label}" if text else label
+
+
+def validate_content(content: str) -> bool:
+    return get_label_text() in (content or "")
+
+
+def set_label_text(new_text: str, admin_user: Dict) -> bool:
+    if not admin_user or admin_user.get("role") != "admin":
+        raise PermissionError("仅管理员可修改 AI 标识文案")
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            "UPDATE ai_label_config SET label_text = ?, updated_at = CURRENT_TIMESTAMP, updated_by = ? WHERE id = 1",
+            (new_text, admin_user.get("id")),
+        )
+        db.conn.commit()
+        return cur.rowcount > 0
+```
+
+- [ ] **Step 4: 运行测试确认通过**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_ai_labeler.py -v`
+Expected: 6 PASS
+
+- [ ] **Step 5: 提交**
+
+```bash
+git add modules/ai_labeler.py tests/test_ai_labeler.py
+git commit -m "feat: add ai_labeler module (get/attach/validate/set_label_text)"
+```
+
+---
+
+### Task 6: 新增 article_history 模块
+
+**Files:**
+- Create: `modules/article_history.py`
+- Test: `tests/test_article_history.py`
+
+**Interfaces:**
+- Consumes: `modules/user_db.get_db`、`article_history` 表、`ai_labeler`
+- Produces: `save_article(user_id, title, topic_json, outline_json, content_json) -> int`（强制附加标识并校验，缺失则抛 `ValueError`）；`list_articles(user_id) -> list`；`get_article(article_id, user_id) -> dict`；`update_article(article_id, user_id, **fields) -> bool`；`delete_article(article_id, user_id) -> bool`
+
+- [ ] **Step 1: 编写失败的回归测试**
+
+```python
+import pytest, json
+from modules import article_history
+
+def _payload(title="测试文章", with_label=True):
+    content = "正文" + ("\n\n本文由 AI 辅助生成，请仔细甄别文章内容。" if with_label else "")
+    return {
+        "title": title,
+        "topic_json": {"idea": "AI"},
+        "outline_json": {"sections": [{"id": "s1", "title": "x"}]},
+        "content_json": {"sections": [{"id": "s1", "title": "x", "content": content, "status": "generated"}]},
+    }
+
+def test_save_article_attaches_label(db):
+    aid = article_history.save_article(1, **_payload(with_label=False))
+    art = article_history.get_article(aid, 1)
+    assert "AI" in art["ai_label"]
+
+def test_save_article_rejects_missing_label(db):
+    # content 全文不含标识且 attach_label 也无法补救的极端情况：直接构造 content_json 字符串也无标识
+    p = _payload()
+    p["content_json"] = {"sections": [{"id": "s1", "title": "x", "content": "完全无标识", "status": "generated"}]}
+    # attach_label 会补救，因此这里测的是 validate 在 attach 后仍失败的场景：
+    # 为覆盖「阻止保存」分支，直接 patch attach_label 返回无标识内容
+    from unittest.mock import patch
+    with patch("modules.article_history.ai_labeler.attach_label", return_value="完全无标识"):
+        with pytest.raises(ValueError):
+            article_history.save_article(1, **p)
+
+def test_list_articles_order(db):
+    article_history.save_article(1, **_payload("A"))
+    article_history.save_article(1, **_payload("B"))
+    arts = article_history.list_articles(1)
+    assert len(arts) == 2
+    assert arts[0]["created_at"] >= arts[1]["created_at"]
+
+def test_update_and_delete(db):
+    aid = article_history.save_article(1, **_payload("原"))
+    assert article_history.update_article(aid, 1, title="改") is True
+    assert article_history.get_article(aid, 1)["title"] == "改"
+    assert article_history.delete_article(aid, 1) is True
+    assert article_history.get_article(aid, 1) is None
+```
+
+- [ ] **Step 2: 运行测试确认失败**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_article_history.py -v`
+Expected: FAIL（模块不存在）
+
+- [ ] **Step 3: 实现 `modules/article_history.py`**
+
+```python
+import json
+from typing import Dict, List, Optional
+from modules.user_db import get_db
+from modules import ai_labeler
+
+
+def save_article(user_id: int, title: str, topic_json: dict, outline_json: dict, content_json: dict) -> int:
+    # 强制附加标识：把 content_json 序列化后 attach_label，再校验
+    content_str = json.dumps(content_json, ensure_ascii=False)
+    labeled = ai_labeler.attach_label(content_str)
+    if not ai_labeler.validate_content(labeled):
+        raise ValueError("AI 标识校验失败：保存的文章必须包含 AI 标识")
+    content_json = json.loads(labeled)
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            """INSERT INTO article_history
+               (user_id, title, topic_json, outline_json, content_json, ai_label)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (user_id, title,
+             json.dumps(topic_json, ensure_ascii=False),
+             json.dumps(outline_json, ensure_ascii=False),
+             json.dumps(content_json, ensure_ascii=False),
+             ai_labeler.get_label_text()),
+        )
+        db.conn.commit()
+        return cur.lastrowid
+
+
+def list_articles(user_id: int) -> List[Dict]:
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            "SELECT * FROM article_history WHERE user_id = ? ORDER BY created_at DESC, id DESC",
+            (user_id,),
+        )
+        return [dict(r) for r in cur.fetchall()]
+
+
+def get_article(article_id: int, user_id: int) -> Optional[Dict]:
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM article_history WHERE id = ? AND user_id = ?", (article_id, user_id))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def update_article(article_id: int, user_id: int, **fields) -> bool:
+    allowed = {"title", "topic_json", "outline_json", "content_json"}
+    sets, vals = [], []
+    for k, v in fields.items():
+        if k not in allowed:
+            continue
+        sets.append(f"{k} = ?")
+        vals.append(json.dumps(v, ensure_ascii=False) if isinstance(v, (dict, list)) else v)
+    if not sets:
+        return False
+    vals.extend([article_id, user_id])
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute(f"UPDATE article_history SET {', '.join(sets)} WHERE id = ? AND user_id = ?", vals)
+        db.conn.commit()
+        return cur.rowcount > 0
+
+
+def delete_article(article_id: int, user_id: int) -> bool:
+    with get_db() as db:
+        cur = db.conn.cursor()
+        cur.execute("DELETE FROM article_history WHERE id = ? AND user_id = ?", (article_id, user_id))
+        db.conn.commit()
+        return cur.rowcount > 0
+```
+
+- [ ] **Step 4: 运行测试确认通过**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_article_history.py -v`
+Expected: 4 PASS
+
+- [ ] **Step 5: 提交**
+
+```bash
+git add modules/article_history.py tests/test_article_history.py
+git commit -m "feat: add article_history module with mandatory AI label attach+validate"
+```
+
+---
+
+## 阶段三：协同创作路由与工作台页面
+
+### Task 7: 协同创作蓝图与创作状态 API
+
+**Files:**
+- Modify: `web_app.py`（追加蓝图与 API 路由）
+- Test: `tests/test_collab_api.py`
+
+**Interfaces:**
+- Consumes: `_get_session_id`、`get_current_user`、`UserDB`、`version_manager`、`ai_writer`、`article_history`、`ai_labeler`
+- Produces: 两个蓝图——`collaborative_bp`（URL 前缀 `/collaborative`，承载页面路由 `GET /`、`POST /create`、`GET /<project_id>`）与 `collaborative_api_bp`（URL 前缀 `/api/collaborative`，承载全部 JSON API）。API 路由严格对齐设计文档 §4.1：`GET /api/collaborative/projects`、`POST /api/collaborative/projects`、`GET /api/collaborative/<id>`、`POST /api/collaborative/<id>/generate-topics`、`POST /api/collaborative/<id>/generate-outline`、`POST /api/collaborative/<id>/generate-content`、`PUT /api/collaborative/<id>/topic`、`PUT /api/collaborative/<id>/outline`、`PUT /api/collaborative/<id>/content`、`POST /api/collaborative/<id>/save-article`、`GET /api/collaborative/<id>/versions`、`GET /api/collaborative/<id>/versions/<v_id>`、`POST /api/collaborative/<id>/versions/compare`、`POST /api/collaborative/<id>/rollback`；外加创作状态持久化 `GET/POST /api/collaborative/<id>/state`、创建快照 `POST /api/collaborative/<id>/versions`、历史文章管理 `GET /api/collaborative/articles`、`GET/DELETE /api/collaborative/articles/<id>`、`POST /api/collaborative/articles/<id>/continue`
+
+- [ ] **Step 1: 编写 API 失败的回归测试**
+
+```python
+import json, pytest
+from unittest.mock import patch
+from modules import ai_writer
+
+def _login(app, monkeypatch):
+    # 直接构造已登录用户：patch get_current_user 返回 admin
+    import web_app
+    monkeypatch.setattr(web_app, "get_current_user", lambda sid: {"id": 1, "role": "admin", "username": "admin"})
+
+def _create(app):
+    r = app.post("/api/collaborative/projects", data=json.dumps({"title": "测试"}), content_type="application/json")
+    return r.get_json()["project_id"]
+
+def test_list_create_get_state(app, monkeypatch):
+    _login(app, monkeypatch)
+    assert app.get("/api/collaborative/projects").status_code == 200
+    pid = _create(app)
+    assert pid > 0
+    r = app.get(f"/api/collaborative/{pid}/state")
+    assert r.status_code == 200 and r.get_json()["phase"] == "topic"
+
+def test_generate_topics_api(app, monkeypatch):
+    _login(app, monkeypatch)
+    pid = _create(app)
+    with patch("modules.ai_writer.generate_topics", return_value=[{"title":"t","description":"d"}]*2):
+        r = app.post(f"/api/collaborative/{pid}/generate-topics",
+                     data=json.dumps({"idea": "AI"}), content_type="application/json")
+    assert r.status_code == 200
+    assert len(r.get_json()["topics"]) == 2
+
+def test_save_article_forces_label(app, monkeypatch):
+    _login(app, monkeypatch)
+    pid = _create(app)
+    body = {"title": "文章", "topic_json": {"idea": "AI"},
+            "outline_json": {"sections": [{"id":"s1","title":"x"}]},
+            "content_json": {"sections": [{"id":"s1","title":"x","content":"正文","status":"generated"}]}}
+    r = app.post(f"/api/collaborative/{pid}/save-article", data=json.dumps(body), content_type="application/json")
+    assert r.status_code == 200
+    assert "article_id" in r.get_json()
+
+def test_versions_and_rollback(app, monkeypatch):
+    _login(app, monkeypatch)
+    pid = _create(app)
+    rv = app.post(f"/api/collaborative/{pid}/versions", data=json.dumps({"version_name":"v1","content_json":{"n":1},"trigger_type":"manual"}), content_type="application/json")
+    assert rv.status_code == 200
+    assert rv.get_json()["version_id"] > 0
+```
+
+- [ ] **Step 2: 运行测试确认失败**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_collab_api.py -v`
+Expected: FAIL（路由未注册）
+
+- [ ] **Step 3: 在 `web_app.py` 追加蓝图**
+
+在 `web_app.py` 中 `app` 定义之后、路由注册区，创建两个蓝图：
+
+```python
+from flask import Blueprint
+collaborative_bp = Blueprint("collaborative", __name__)
+collaborative_api_bp = Blueprint("collaborative_api", __name__)
+```
+
+在文件末尾 `app.run(...)` 之前，先实现页面蓝图路由，再实现 API 蓝图路由，最后注册：
+
+```python
+# ════════════════════════════════════════════════════════════
+# 协同创作：页面蓝图（/collaborative）
+# ════════════════════════════════════════════════════════════
+
+@collaborative_bp.route("/", methods=["GET"])
+def collab_list():
+    user = get_current_user(_get_session_id())
+    if not user:
+        return redirect("/login.html")
+    return send_from_directory(str(BASE_DIR / "templates"), "collaborative/list.html")
+
+
+@collaborative_bp.route("/create", methods=["POST"])
+def collab_create():
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    data = request.get_json(silent=True) or {}
+    title = (data.get("title") or "").strip() or "未命名创作"
+    with UserDB() as db:
+        cur = db.conn.cursor()
+        cur.execute("INSERT INTO collaborative_projects (user_id, title, current_phase) VALUES (?, ?, 'topic')",
+                    (user["id"], title))
+        db.conn.commit()
+        pid = cur.lastrowid
+    return jsonify({"project_id": pid})
+
+
+@collaborative_bp.route("/<int:project_id>", methods=["GET"])
+def collab_workbench(project_id: int):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return redirect("/login.html")
+    with UserDB() as db:
+        proj = db.conn.execute("SELECT * FROM collaborative_projects WHERE id = ? AND user_id = ?",
+                               (project_id, user["id"])).fetchone()
+    if not proj:
+        return redirect("/collaborative")
+    return send_from_directory(str(BASE_DIR / "templates"), "collaborative/workbench.html")
+```
+
+再实现 API 蓝图（`/api/collaborative`），严格对齐设计文档 §4.1：
+
+```python
+# ════════════════════════════════════════════════════════════
+# 协同创作：API 蓝图（/api/collaborative）
+# ════════════════════════════════════════════════════════════
+
+def _load_project(project_id: int, user_id: int) -> Optional[dict]:
+    with UserDB() as db:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM collaborative_projects WHERE id = ? AND user_id = ?", (project_id, user_id))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def _json_or_none(s):
+    try:
+        return json.loads(s) if s else None
+    except Exception:
+        return None
+
+
+@collaborative_api_bp.route("/projects", methods=["GET"])
+def collab_api_list_projects():
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    with UserDB() as db:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM collaborative_projects WHERE user_id = ? ORDER BY updated_at DESC, id DESC",
+                    (user["id"],))
+        projects = [dict(r) for r in cur.fetchall()]
+    return jsonify({"projects": projects})
+
+
+@collaborative_api_bp.route("/projects", methods=["POST"])
+def collab_api_create_project():
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    data = request.get_json(silent=True) or {}
+    title = (data.get("title") or "").strip() or "未命名创作"
+    with UserDB() as db:
+        cur = db.conn.cursor()
+        cur.execute("INSERT INTO collaborative_projects (user_id, title, current_phase) VALUES (?, ?, 'topic')",
+                    (user["id"], title))
+        db.conn.commit()
+        pid = cur.lastrowid
+    return jsonify({"project_id": pid})
+
+
+@collaborative_api_bp.route("/<int:project_id>", methods=["GET"])
+def collab_api_get_project(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    proj = _load_project(project_id, user["id"])
+    if not proj:
+        return jsonify({"error": "项目不存在"}), 404
+    return jsonify({
+        "phase": proj["current_phase"],
+        "topic": _json_or_none(proj["topic_json"]),
+        "outline": _json_or_none(proj["outline_json"]),
+        "content": _json_or_none(proj["content_json"]),
+    })
+
+
+@collaborative_api_bp.route("/<int:project_id>/state", methods=["GET"])
+def collab_get_state(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    proj = _load_project(project_id, user["id"])
+    if not proj:
+        return jsonify({"error": "项目不存在"}), 404
+    return jsonify({
+        "phase": proj["current_phase"],
+        "topic": _json_or_none(proj["topic_json"]),
+        "outline": _json_or_none(proj["outline_json"]),
+        "content": _json_or_none(proj["content_json"]),
+    })
+
+
+@collaborative_api_bp.route("/<int:project_id>/state", methods=["POST"])
+def collab_save_state(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    data = request.get_json(silent=True) or {}
+    proj = _load_project(project_id, user["id"])
+    if not proj:
+        return jsonify({"error": "项目不存在"}), 404
+    with UserDB() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            "UPDATE collaborative_projects SET current_phase=?, topic_json=?, outline_json=?, content_json=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
+            (data.get("phase", proj["current_phase"]),
+             json.dumps(data.get("topic"), ensure_ascii=False) if data.get("topic") is not None else proj["topic_json"],
+             json.dumps(data.get("outline"), ensure_ascii=False) if data.get("outline") is not None else proj["outline_json"],
+             json.dumps(data.get("content"), ensure_ascii=False) if data.get("content") is not None else proj["content_json"],
+             project_id),
+        )
+        db.conn.commit()
+    return jsonify({"success": True})
+
+
+@collaborative_api_bp.route("/<int:project_id>/generate-topics", methods=["POST"])
+def collab_generate_topics(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    if not _load_project(project_id, user["id"]):
+        return jsonify({"error": "项目不存在"}), 404
+    data = request.get_json(silent=True) or {}
+    topics = ai_writer.generate_topics(data.get("idea", ""), count=data.get("count", 5), user_id=user["id"])
+    return jsonify({"topics": topics})
+
+
+@collaborative_api_bp.route("/<int:project_id>/generate-outline", methods=["POST"])
+def collab_generate_outline(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    if not _load_project(project_id, user["id"]):
+        return jsonify({"error": "项目不存在"}), 404
+    data = request.get_json(silent=True) or {}
+    outline = ai_writer.generate_outline(data.get("topic", ""), context=data.get("context"), user_id=user["id"])
+    return jsonify({"outline": outline})
+
+
+@collaborative_api_bp.route("/<int:project_id>/generate-content", methods=["POST"])
+def collab_generate_content(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    if not _load_project(project_id, user["id"]):
+        return jsonify({"error": "项目不存在"}), 404
+    data = request.get_json(silent=True) or {}
+    result = ai_writer.generate_content(data.get("outline", {}), section=data.get("section_id"), user_id=user["id"])
+    return jsonify(result)
+
+
+def _save_project_json(project_id, field, value):
+    with UserDB() as db:
+        cur = db.conn.cursor()
+        cur.execute(f"UPDATE collaborative_projects SET {field}=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                    (json.dumps(value, ensure_ascii=False), project_id))
+        db.conn.commit()
+
+
+@collaborative_api_bp.route("/<int:project_id>/topic", methods=["PUT"])
+def collab_save_topic(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    if not _load_project(project_id, user["id"]):
+        return jsonify({"error": "项目不存在"}), 404
+    data = request.get_json(silent=True) or {}
+    _save_project_json(project_id, "topic_json", data.get("topic"))
+    return jsonify({"success": True})
+
+
+@collaborative_api_bp.route("/<int:project_id>/outline", methods=["PUT"])
+def collab_save_outline(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    if not _load_project(project_id, user["id"]):
+        return jsonify({"error": "项目不存在"}), 404
+    data = request.get_json(silent=True) or {}
+    _save_project_json(project_id, "outline_json", data.get("outline"))
+    return jsonify({"success": True})
+
+
+@collaborative_api_bp.route("/<int:project_id>/content", methods=["PUT"])
+def collab_save_content(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    if not _load_project(project_id, user["id"]):
+        return jsonify({"error": "项目不存在"}), 404
+    data = request.get_json(silent=True) or {}
+    _save_project_json(project_id, "content_json", data.get("content"))
+    return jsonify({"success": True})
+
+
+@collaborative_api_bp.route("/<int:project_id>/save-article", methods=["POST"])
+def collab_save_article(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    proj = _load_project(project_id, user["id"])
+    if not proj:
+        return jsonify({"error": "项目不存在"}), 404
+    data = request.get_json(silent=True) or {}
+    try:
+        aid = article_history.save_article(
+            user_id=user["id"],
+            title=data.get("title") or proj["title"] or "未命名文章",
+            topic_json=_json_or_none(proj["topic_json"]) or {},
+            outline_json=_json_or_none(proj["outline_json"]) or {},
+            content_json=_json_or_none(proj["content_json"]) or {},
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    with UserDB() as db:
+        db.conn.execute("UPDATE collaborative_projects SET current_phase='save', updated_at=CURRENT_TIMESTAMP WHERE id=?", (project_id,))
+        db.conn.commit()
+    return jsonify({"article_id": aid})
+
+
+@collaborative_api_bp.route("/<int:project_id>/versions", methods=["GET"])
+def collab_list_versions(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    if not _load_project(project_id, user["id"]):
+        return jsonify({"error": "项目不存在"}), 404
+    return jsonify({"versions": version_manager.list_versions(project_id)})
+
+
+@collaborative_api_bp.route("/<int:project_id>/versions", methods=["POST"])
+def collab_create_version(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    proj = _load_project(project_id, user["id"])
+    if not proj:
+        return jsonify({"error": "项目不存在"}), 404
+    data = request.get_json(silent=True) or {}
+    content = data.get("content_json") or {
+        "topic": _json_or_none(proj["topic_json"]),
+        "outline": _json_or_none(proj["outline_json"]),
+        "content": _json_or_none(proj["content_json"]),
+    }
+    vid = version_manager.create_snapshot(
+        project_id=project_id, user_id=user["id"],
+        version_name=data.get("version_name", "手动快照"),
+        content_json=content, trigger_type=data.get("trigger_type", "manual"))
+    return jsonify({"version_id": vid})
+
+
+@collaborative_api_bp.route("/<int:project_id>/versions/<int:v_id>", methods=["GET"])
+def collab_get_version(project_id, v_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    v = version_manager.get_version(v_id)
+    if not v or v["project_id"] != project_id:
+        return jsonify({"error": "版本不存在"}), 404
+    return jsonify({"content_json": json.loads(v["content_json"])})
+
+
+@collaborative_api_bp.route("/<int:project_id>/versions/compare", methods=["POST"])
+def collab_compare_versions(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    data = request.get_json(silent=True) or {}
+    diff = version_manager.compare_versions(data["v1"], data["v2"])
+    return jsonify({"diff": diff})
+
+
+@collaborative_api_bp.route("/<int:project_id>/rollback", methods=["POST"])
+def collab_rollback(project_id):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    data = request.get_json(silent=True) or {}
+    new_id = version_manager.rollback_to_version(data["version_id"], user["id"])
+    return jsonify({"version_id": new_id})
+
+
+@collaborative_api_bp.route("/articles", methods=["GET"])
+def collab_list_articles():
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    return jsonify({"articles": article_history.list_articles(user["id"])})
+
+
+@collaborative_api_bp.route("/articles/<int:aid>", methods=["GET"])
+def collab_get_article(aid):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    art = article_history.get_article(aid, user["id"])
+    if not art:
+        return jsonify({"error": "文章不存在"}), 404
+    return jsonify(art)
+
+
+@collaborative_api_bp.route("/articles/<int:aid>", methods=["DELETE"])
+def collab_delete_article(aid):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    ok = article_history.delete_article(aid, user["id"])
+    return jsonify({"success": ok})
+
+
+@collaborative_api_bp.route("/articles/<int:aid>/continue", methods=["POST"])
+def collab_continue_article(aid):
+    user = get_current_user(_get_session_id())
+    if not user:
+        return jsonify({"error": "未登录"}), 401
+    art = article_history.get_article(aid, user["id"])
+    if not art:
+        return jsonify({"error": "文章不存在"}), 404
+    with UserDB() as db:
+        cur = db.conn.cursor()
+        cur.execute(
+            "INSERT INTO collaborative_projects (user_id, title, current_phase, topic_json, outline_json, content_json) VALUES (?, ?, 'content', ?, ?, ?)",
+            (user["id"], art["title"] + "（续）", art["topic_json"], art["outline_json"], art["content_json"]))
+        db.conn.commit()
+        pid = cur.lastrowid
+    return jsonify({"project_id": pid})
+
+
+app.register_blueprint(collaborative_bp, url_prefix="/collaborative")
+app.register_blueprint(collaborative_api_bp, url_prefix="/api/collaborative")
+```
+
+- [ ] **Step 4: 运行测试确认通过**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_collab_api.py -v`
+Expected: 全部 PASS
+
+- [ ] **Step 5: 提交**
+
+```bash
+git add web_app.py tests/test_collab_api.py
+git commit -m "feat: add collaborative blueprint + REST API and state persistence"
+```
+
+---
+
+### Task 8: 工作台列表页与创作工作台页骨架
+
+**Files:**
+- Create: `templates/collaborative/list.html`
+- Create: `templates/collaborative/workbench.html`
+- Create: `web_static/collaborative.css`
+- Create: `web_static/collaborative.js`
+
+**Interfaces:**
+- Consumes: `/api/collaborative/projects`、`/api/collaborative/<id>/state` 等 API
+- Produces: 列表页（创作列表 + 历史文章列表，按更新时间排序）；工作台页（阶段导航选题/大纲/内容/保存、当前阶段高亮、版本历史侧边栏容器、`#workbench-app` 根容器由 `collaborative.js` 驱动）
+
+- [ ] **Step 1: 创建 `templates/collaborative/list.html`**
+
+页面含顶部栏（标题 + "新建创作"按钮）、协同创作项目列表区、历史文章列表区。通过 fetch 拉取数据渲染，按 `updated_at`/`created_at` 排序。引入 `../../web_static/collaborative.css` 与 `../../web_static/collaborative.js`。
+
+- [ ] **Step 2: 创建 `templates/collaborative/workbench.html`**
+
+顶部栏（返回列表、标题、"保存到历史文章"按钮）、阶段导航（4 个指示器，当前阶段 `.active`）、主面板容器（`#phase-panel`）、版本历史侧边栏（`#version-sidebar`，可折叠）。`data-project-id` 由后端渲染注入（模板变量 `{{ project_id }}`，需在路由中传入 `render_template_string` 或改用 `send_from_directory` + JS 读 `location.pathname` 解析 id；实现采用后者：JS 从 URL `/collaborative/<id>` 解析 project_id）。
+
+- [ ] **Step 3: 创建 `web_static/collaborative.css`**
+
+定义阶段导航 `.phase-nav`、`.phase-step`、`.active`/`.done`、选题卡片 `.topic-card`、大纲树 `.outline-tree`、内容段落 `.content-block`、侧边栏 `.version-sidebar`（折叠态 `.collapsed`）、加载遮罩 `.loading-overlay`。与现有 `common.css` 风格一致（深色侧边栏 + 浅色主区）。
+
+- [ ] **Step 4: 创建 `web_static/collaborative.js` 骨架**
+
+实现 `initWorkbench()`：解析 project_id、绑定阶段导航点击、加载状态渲染各阶段面板、版本历史侧边栏折叠。暴露全局 `WorkbenchAPI = { renderPhase, loadState, saveState, showLoading }`，供后续任务填充各阶段逻辑。
+
+- [ ] **Step 5: 手动验证页面可渲染**
+
+Run: 启动 `python web_app.py`，登录后访问 `/collaborative/` 与 `/collaborative/1`，确认列表页与工作台骨架渲染、阶段导航高亮。
+
+- [ ] **Step 6: 提交**
+
+```bash
+git add templates/collaborative/ web_static/collaborative.css web_static/collaborative.js
+git commit -m "feat(ui): add collaborative list + workbench skeleton and nav"
+```
+
+---
+
+## 阶段四：各阶段前端面板
+
+### Task 9: 选题生成面板
+
+**Files:**
+- Modify: `web_static/collaborative.js`
+- Modify: `templates/collaborative/workbench.html`（选题面板 DOM）
+
+**Interfaces:**
+- Consumes: `POST /api/collaborative/<id>/generate-topics`、`PUT /api/collaborative/<id>/topic`、`version_manager.create_snapshot`
+- Produces: 选题面板交互（想法输入、生成选题、选题卡片选择/修改/自定义、确认选题触发 `auto_topic` 快照）
+
+- [ ] **Step 1: 在工作台模板添加选题面板 DOM**
+
+在 `#phase-panel` 内添加 `#phase-topic` 面板：想法输入框 `#idea-input`、`#generate-topics-btn`、`#topics-list` 卡片容器、`#custom-topic-btn`、`#confirm-topic-btn`。
+
+- [ ] **Step 2: 实现 `renderPhaseTopic()`**
+
+绑定"生成选题"按钮 → fetch `generate-topics` → 渲染 `.topic-card`（标题、说明、"选择此选题"、"修改"）；自定义选题输入直接填充；确认后 `PUT topic` 并以 `auto_topic` 触发版本快照（新增 `POST /api/<id>/versions` 快捷路由或在 `save-article` 类似位置提供 `POST /api/<id>/versions` 创建快照；实现：在蓝图追加 `POST /api/<id>/versions` 调用 `version_manager.create_snapshot`）。
+
+- [ ] **Step 3: 手动验证**
+
+输入想法 → 生成选题 → 选择/自定义 → 确认后选题只读、版本历史出现 `auto_topic` 快照。
+
+- [ ] **Step 4: 提交**
+
+```bash
+git add web_static/collaborative.js templates/collaborative/workbench.html
+git commit -m "feat(ui): topic generation panel with cards, custom topic, snapshot"
+```
+
+---
+
+### Task 10: 大纲生成与编辑面板
+
+**Files:**
+- Modify: `web_static/collaborative.js`
+- Modify: `templates/collaborative/workbench.html`
+
+**Interfaces:**
+- Consumes: `POST /api/collaborative/<id>/generate-outline`、`PUT /api/collaborative/<id>/outline`
+- Produces: 大纲树渲染、双击编辑、添加/删除节点、拖拽排序、锁定大纲触发 `auto_outline` 快照
+
+- [ ] **Step 1: 添加大纲面板 DOM**
+
+`#phase-outline`：选题只读展示、`#generate-outline-btn`、`#outline-tree` 容器、`#lock-outline-btn`。
+
+- [ ] **Step 2: 实现 `renderPhaseOutline()`**
+
+生成大纲 → 渲染可编辑树（递归渲染 `sections` + `children`）；节点双击变 input 编辑 title；添加/删除按钮修改本地 `outline` 状态；拖拽排序用 HTML5 draggable；锁定后 `PUT outline` + `auto_outline` 快照，树进入只读。
+
+- [ ] **Step 3: 手动验证**
+
+生成大纲 → 编辑节点 → 锁定后只读、版本历史新增 `auto_outline` 快照。
+
+- [ ] **Step 4: 提交**
+
+```bash
+git add web_static/collaborative.js templates/collaborative/workbench.html
+git commit -m "feat(ui): outline generation + editable tree + lock snapshot"
+```
+
+---
+
+### Task 11: 内容生成与编辑面板
+
+**Files:**
+- Modify: `web_static/collaborative.js`
+- Modify: `templates/collaborative/workbench.html`
+
+**Interfaces:**
+- Consumes: `POST /api/collaborative/<id>/generate-content`、`PUT /api/collaborative/<id>/content`
+- Produces: 按大纲章节分组的内容段落、逐段/全部生成、段落编辑自动保存、进度指示器（已生成/总章节数）、"保存到历史文章"入口
+
+- [ ] **Step 1: 添加内容面板 DOM**
+
+`#phase-content`：大纲章节列表、每章"生成内容"按钮、`#generate-all-btn`、`#content-list`、进度 `#content-progress`、`#to-save-btn`。
+
+- [ ] **Step 2: 实现 `renderPhaseContent()`**
+
+逐段生成（带 `section_id`）/全部生成（不带）→ 按章节分组渲染 `.content段落`（正文 + 大纲节点标注）；段落双击/失焦编辑后防抖 `PUT content` 并标记 `status: "edited"`；进度条实时更新。
+
+- [ ] **Step 3: 手动验证**
+
+两种生成方式、段落编辑自动保存、进度更新、点击保存进入保存环节。
+
+- [ ] **Step 4: 提交**
+
+```bash
+git add web_static/collaborative.js templates/collaborative/workbench.html
+git commit -m "feat(ui): content generation per-section/all + edit autosave + progress"
+```
+
+---
+
+### Task 12: 版本历史侧边栏
+
+**Files:**
+- Modify: `web_static/collaborative.js`
+- Modify: `templates/collaborative/workbench.html`
+- Modify: `web_static/collaborative.css`
+
+**Interfaces:**
+- Consumes: `GET /api/<id>/versions`、`GET /api/<id>/versions/<v_id>`、`POST /api/<id>/versions/compare`、`POST /api/<id>/rollback`
+- Produces: 版本列表（时间/名称/变更摘要，倒序）、只读查看、双版本 diff 高亮、回溯创建新版本
+
+- [ ] **Step 1: 添加侧边栏 DOM**
+
+`#version-sidebar`：折叠按钮、`#version-list`、`#version-detail`（只读）、`#version-diff`、版本选择器（对比两版本）+ 回溯按钮。
+
+- [ ] **Step 2: 实现版本交互**
+
+加载时 fetch 版本列表并渲染；点击版本 → fetch 详情 → 只读展示；勾选两版本 → compare → 高亮 `old/new` 差异；回溯 → `POST rollback` → 刷新列表并更新当前内容。
+
+- [ ] **Step 3: 手动验证**
+
+版本倒序、只读查看、diff 高亮、回溯后历史保留且内容更新。
+
+- [ ] **Step 4: 提交**
+
+```bash
+git add web_static/collaborative.js templates/collaborative/workbench.html web_static/collaborative.css
+git commit -m "feat(ui): version history sidebar with view/compare/rollback"
+```
+
+---
+
+### Task 13: 历史文章前端
+
+**Files:**
+- Modify: `templates/collaborative/list.html`
+- Modify: `web_static/collaborative.js`
+
+**Interfaces:**
+- Consumes: `article_history.list_articles` / `get_article` / `delete_article`（需新增 `GET /api/collaborative/articles`、`GET /api/collaborative/articles/<id>`、`DELETE /api/collaborative/articles/<id>`、`POST /api/collaborative/articles/<id>/continue`）
+- Produces: 历史文章列表（标题/时间/字数/操作）、查看（含 AI 标识）、继续编辑（新建项目预填充）、删除前确认
+
+- [ ] **Step 1: 在蓝图追加历史文章 API**
+
+`GET /api/collaborative/articles` → `article_history.list_articles`；`GET /api/collaborative/articles/<id>` → `get_article`；`DELETE` → `delete_article`；`POST /api/collaborative/articles/<id>/continue` → 读取历史文章 → 新建 `collaborative_projects` 并预填充 topic/outline/content → 返回 `project_id`。
+
+- [ ] **Step 2: 实现列表页历史文章区**
+
+fetch 列表 → 渲染行（标题、保存时间、字数、查看/继续编辑/删除）；查看用弹窗展示正文 + 末尾 AI 标识；继续编辑调用 `/continue` 后跳转工作台；删除前 `confirm()`。
+
+- [ ] **Step 3: 手动验证**
+
+列表渲染、操作按钮、继续编辑预填充正确、删除后移除。
+
+- [ ] **Step 4: 提交**
+
+```bash
+git add web_app.py templates/collaborative/list.html web_static/collaborative.js
+git commit -m "feat(ui): history article list with view/continue-edit/delete"
+```
+
+---
+
+## 阶段五：平台专属功能移除
+
+### Task 14: 移除平台专属模块与引用
+
+**Files:**
+- Delete: `modules/wx_publisher.py`
+- Delete: `modules/md_converter.py`
+- Delete: `modules/cover_generator.py`
+- Delete: `modules/cover_maker.py`
+- Modify: `modules/__init__.py`
+- Modify: `web_app.py`
+- Modify: `main.py`
+- Modify: `modules/article_rewriter.py`（移除 `from modules.md_converter import ...` 引用，降级为纯文本输出）
+- Delete: `web_static/cover_maker.html`、`web_static/cover_maker.css`、`web_static/cover_maker.js`
+- Delete: `domains_config.json`
+- Test: `tests/test_platform_removal.py`
+
+**Interfaces:**
+- Consumes: 无（纯删除与解耦）
+- Produces: 代码库中无平台专属模块/路由/配置/引用残留
+
+- [ ] **Step 1: 编写移除验证测试**
+
+```python
+import os, sys, glob
+ROOT = os.path.abspath(os.path.join(__file__, "..", ".."))
+
+def test_platform_modules_gone():
+    for name in ["wx_publisher.py","md_converter.py","cover_generator.py","cover_maker.py"]:
+        assert not os.path.exists(os.path.join(ROOT, "modules", name)), f"{name} 应被删除"
+
+def test_no_platform_imports():
+    offenders = []
+    for path in glob.glob(os.path.join(ROOT, "modules", "*.py")):
+        if "__pycache__" in path:
+            continue
+        with open(path, encoding="utf-8") as f:
+            src = f.read()
+        for frag in ["wx_publisher","md_converter","cover_generator","cover_maker"]:
+            if frag in src and path.endswith(frag + ".py") is False:
+                # 仅标记引用了已删模块的文件（自身文件名除外）
+                if os.path.basename(path) != frag + ".py":
+                    offenders.append((path, frag))
+    assert not offenders, f"仍引用已删模块: {offenders}"
+
+def test_domains_config_gone():
+    assert not os.path.exists(os.path.join(ROOT, "domains_config.json"))
+```
+
+- [ ] **Step 2: 运行测试确认失败**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_platform_removal.py -v`
+Expected: FAIL（文件仍存在）
+
+- [ ] **Step 3: 删除平台模块文件**
+
+删除 `modules/wx_publisher.py`、`modules/md_converter.py`、`modules/cover_generator.py`、`modules/cover_maker.py`。
+
+- [ ] **Step 4: 清理 `modules/__init__.py`**
+
+移除 `md_converter`、`cover_generator`、`wx_publisher` 的导入与 `__all__` 条目，仅保留 `keyword_extractor` 等无关模块。
+
+- [ ] **Step 5: 清理 `web_app.py` 平台引用**
+
+删除/注释：`cover_maker.html/.js/.css` 路由（L955-974）、`api_cover_maker_*` 路由（L3120-3207）、`from modules.wx_publisher` / `from modules.md_converter` / `from modules.cover_maker` 导入、`run_auto_pipeline` 中推草稿箱逻辑（保留写稿核心，移除 `wx_publisher` 推送）。平台相关菜单项在模板中移除。
+
+- [ ] **Step 6: 清理 `main.py` 平台引用**
+
+移除 `from modules.md_converter`、`from modules.cover_generator`、`wx_publisher` 导入；移除 `--list-drafts`、`--draft-only` 等命令行入口与 `run_publish_pipeline` 中的草稿推送（保留本地写稿/排版输出路径）。
+
+- [ ] **Step 7: 清理 `article_rewriter.py`**
+
+移除 `from modules.md_converter import markdown_to_wechat_html`；改写失败时降级为返回原始 Markdown（不再转微信 HTML）。
+
+- [ ] **Step 8: 删除平台前端文件与配置**
+
+删除 `web_static/cover_maker.html/.css/.js`、`domains_config.json`。
+
+- [ ] **Step 9: 运行测试确认通过**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_platform_removal.py -v`
+Expected: 3 PASS；并运行全量测试确认无断裂：`python -m pytest tests/ -v`
+
+- [ ] **Step 10: 提交**
+
+```bash
+git add -A
+git commit -m "refactor: remove platform-specific modules (wx/md/cover) and all references"
+```
+
+---
+
+## 阶段六：集成测试与验收
+
+### Task 15: 端到端集成测试
+
+**Files:**
+- Create: `tests/test_e2e_collaborative.py`
+
+**Interfaces:**
+- Consumes: 全部协同创作 API、`version_manager`、`article_history`、`ai_labeler`、`ai_writer`（mock LLM）
+- Produces: 覆盖设计文档 §8.4 的 5 个关键测试场景
+
+- [ ] **Step 1: 编写端到端测试**
+
+```python
+import json, pytest
+from unittest.mock import patch
+import web_app
+
+def _auth(app, monkeypatch):
+    monkeypatch.setattr(web_app, "get_current_user", lambda sid: {"id": 1, "role": "admin"})
+
+def _new_project(app):
+    r = app.post("/api/collaborative/projects", data=json.dumps({"title":"e2e"}), content_type="application/json")
+    return r.get_json()["project_id"]
+
+TOPICS = [{"title":"t1","description":"d1"}]
+OUTLINE = {"sections":[{"id":"s1","title":"章节","points":["p"],"children":[]}]}
+CONTENT = {"sections":[{"id":"s1","title":"章节","content":"正文","status":"generated"}]}
+
+def test_e2e_full_flow(app, monkeypatch):
+    _auth(app, monkeypatch)
+    pid = _new_project(app)
+    with patch("modules.ai_writer.generate_topics", return_value=TOPICS), \
+         patch("modules.ai_writer.generate_outline", return_value=OUTLINE), \
+         patch("modules.ai_writer.generate_content", return_value=CONTENT):
+        app.post(f"/api/collaborative/{pid}/generate-topics", data=json.dumps({"idea":"AI"}), content_type="application/json")
+        app.put(f"/api/collaborative/{pid}/topic", data=json.dumps({"topic":TOPICS[0]}), content_type="application/json")
+        app.post(f"/api/collaborative/{pid}/generate-outline", data=json.dumps({"topic":"t1"}), content_type="application/json")
+        app.put(f"/api/collaborative/{pid}/outline", data=json.dumps({"outline":OUTLINE}), content_type="application/json")
+        app.post(f"/api/collaborative/{pid}/generate-content", data=json.dumps({"outline":OUTLINE}), content_type="application/json")
+        app.put(f"/api/collaborative/{pid}/content", data=json.dumps({"content":CONTENT}), content_type="application/json")
+        r = app.post(f"/api/collaborative/{pid}/save-article", data=json.dumps({"title":"成品"}), content_type="application/json")
+    assert r.status_code == 200
+    aid = r.get_json()["article_id"]
+    # 验证 AI 标识存在
+    from modules import article_history
+    art = article_history.get_article(aid, 1)
+    assert "AI" in art["ai_label"]
+
+def test_e2e_ai_label_blocked(app, monkeypatch):
+    _auth(app, monkeypatch)
+    pid = _new_project(app)
+    from unittest.mock import patch as _p
+    with _p("modules.article_history.ai_labeler.attach_label", return_value="无标识正文"):
+        r = app.post(f"/api/collaborative/{pid}/save-article",
+                     data=json.dumps({"title":"x","topic_json":{},"outline_json":{},"content_json":{}}),
+                     content_type="application/json")
+    assert r.status_code == 400
+
+def test_e2e_version_rollback(app, monkeypatch):
+    _auth(app, monkeypatch)
+    pid = _new_project(app)
+    r1 = app.post(f"/api/collaborative/{pid}/versions", data=json.dumps({"version_name":"v1","content_json":{"n":1},"trigger_type":"manual"}), content_type="application/json")
+    v1 = r1.get_json()["version_id"]
+    app.post(f"/api/collaborative/{pid}/versions", data=json.dumps({"version_name":"v2","content_json":{"n":2},"trigger_type":"manual"}), content_type="application/json")
+    rb = app.post(f"/api/collaborative/{pid}/rollback", data=json.dumps({"version_id":v1}), content_type="application/json")
+    assert rb.status_code == 200
+    st = app.get(f"/api/collaborative/{pid}/state").get_json()
+    assert st["content"]["n"] == 1
+
+def test_e2e_history_management(app, monkeypatch):
+    _auth(app, monkeypatch)
+    pid = _new_project(app)
+    r = app.post(f"/api/collaborative/{pid}/save-article", data=json.dumps({"title":"hm","topic_json":{},"outline_json":{},"content_json":{"sections":[{"id":"s1","title":"x","content":"正文","status":"generated"}]}}), content_type="application/json")
+    aid = r.get_json()["article_id"]
+    assert app.get(f"/api/collaborative/articles/{aid}").status_code == 200
+    assert app.delete(f"/api/collaborative/articles/{aid}").status_code == 200
+    assert app.get(f"/api/collaborative/articles/{aid}").status_code == 404
+
+def test_e2e_platform_removed(app, monkeypatch):
+    # 平台路由应不再可访问（404）
+    _auth(app, monkeypatch)
+    assert app.get("/cover_maker.html").status_code == 404
+```
+
+> 注：需在蓝图追加 `POST /api/<id>/versions`（创建快照）与历史文章 API（见 Task 13）。
+
+- [ ] **Step 2: 运行测试确认通过**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/test_e2e_collaborative.py -v`
+Expected: 5 PASS
+
+- [ ] **Step 3: 全量测试回归**
+
+Run: `cd /Users/casey/workspace/inkForge-studio && python -m pytest tests/ -v`
+Expected: 全部 PASS，无断裂
+
+- [ ] **Step 4: 提交**
+
+```bash
+git add tests/test_e2e_collaborative.py
+git commit -m "test: add e2e integration tests for collaborative workflow"
+```
+
+---
+
+## 实施顺序总结
+
+1. Task 1 → Task 2（数据库 + 测试基础设施）
+2. Task 3 → Task 4 → Task 5 → Task 6（后端模块，可并行开发后集成）
+3. Task 7 → Task 8（路由 + 页面骨架）
+4. Task 9 → Task 10 → Task 11 → Task 12 → Task 13（各阶段前端面板）
+5. Task 14（平台功能移除）
+6. Task 15（端到端集成验收）
+
+每个 Task 均以"写失败测试 → 验证失败 → 实现 → 验证通过 → 提交"的 TDD 节奏执行，产出独立可测试的交付物。

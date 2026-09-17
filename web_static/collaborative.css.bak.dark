@@ -1,0 +1,299 @@
+/* ============================================================
+   collaborative.css — 墨锻工坊 · 创作工作台【科技感】主题
+   设计语言：深空蓝底 + 霓虹青主色 + 电光蓝辅色 + 玻璃拟物
+   ============================================================ */
+
+/* ── 设计令牌（覆盖 common.css 变量）── */
+:root {
+  --bg:        #070b14;   /* 深空蓝黑 */
+  --bg2:       #0d1321;   /* 层级底 */
+  --bg3:       #121a2b;   /* 更高层级 */
+  --card:      rgba(18, 26, 43, 0.55);   /* 玻璃拟物卡片底 */
+  --border:    rgba(0, 229, 255, 0.16);
+  --border-strong: rgba(0, 229, 255, 0.45);
+
+  --accent:    #00e5ff;   /* 霓虹青（主色）*/
+  --accent2:   #0891b2;   /* 深青（辅）*/
+  --blue:      #3b82f6;   /* 电光蓝 */
+  --glow:      rgba(0, 229, 255, 0.55);
+  --glow-soft: rgba(0, 229, 255, 0.20);
+
+  --text:      #e6f1ff;
+  --text2:     #7f8db0;
+
+  --grad-accent: linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%);
+  --grad-card:   linear-gradient(135deg, rgba(0,229,255,0.10), rgba(59,130,246,0.05));
+}
+
+/* ── 背景：深空 + 网格 + 光晕 ── */
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(0,229,255,0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(59,130,246,0.10), transparent 55%),
+    linear-gradient(180deg, #070b14 0%, #05080f 100%);
+  background-attachment: fixed;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.045) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* ── 侧边栏：玻璃 + 霓虹左边框 ── */
+.sidebar {
+  position: relative;
+  background: rgba(13, 19, 33, 0.7);
+  backdrop-filter: blur(14px);
+  border-right: 1px solid var(--border);
+}
+.sidebar::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  border-right: 1px solid transparent;
+  background: linear-gradient(180deg, transparent, var(--glow) 50%, transparent);
+  opacity: 0.35; mix-blend-mode: screen;
+}
+.sidebar-logo h1 {
+  background: var(--grad-accent);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  letter-spacing: 1px; font-weight: 700;
+  text-shadow: 0 0 24px var(--glow-soft);
+}
+.sidebar-logo p { color: var(--text2); }
+.nav-item {
+  position: relative; border: 1px solid transparent;
+  transition: background .18s, color .18s, border-color .18s, box-shadow .18s;
+}
+.nav-item:hover {
+  background: rgba(0,229,255,0.08); color: #fff;
+  border-color: var(--border); box-shadow: inset 0 0 18px var(--glow-soft);
+}
+.nav-item.active, .nav-item[style*="rgb"] {
+  background: rgba(0,229,255,0.12) !important;
+  color: var(--accent) !important;
+  border-color: var(--border-strong) !important;
+  box-shadow: inset 0 0 20px var(--glow-soft), 0 0 14px var(--glow-soft);
+}
+.nav-group-label { color: rgba(127,141,176,0.6); }
+
+/* ── 顶栏 ── */
+.topbar {
+  background: rgba(13, 19, 33, 0.6);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-title {
+  font-weight: 600; letter-spacing: .5px;
+  background: var(--grad-accent);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* ── 卡片：玻璃拟物 + 渐变描边 + 悬停光晕 ── */
+.card {
+  position: relative;
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: border-color .2s, box-shadow .25s, transform .2s;
+  overflow: hidden;
+}
+.card::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background: var(--grad-card);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: .5; pointer-events: none; transition: opacity .25s;
+}
+.card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 10px 36px rgba(0,0,0,0.45), 0 0 22px var(--glow-soft), inset 0 1px 0 rgba(255,255,255,0.05);
+  transform: translateY(-1px);
+}
+.card:hover::before { opacity: 1; }
+.card-title {
+  font-weight: 600; letter-spacing: .4px;
+  color: #f0f7ff;
+  text-shadow: 0 0 12px var(--glow-soft);
+}
+
+/* ── 主按钮：霓虹填充 + 光晕 ── */
+.btn-primary {
+  background: var(--grad-accent); color: #04121a;
+  border: 1px solid rgba(255,255,255,0.18);
+  font-weight: 600; letter-spacing: .4px;
+  box-shadow: 0 0 14px var(--glow-soft), 0 4px 14px rgba(0,0,0,0.3);
+  position: relative; overflow: hidden; transition: box-shadow .2s, transform .15s;
+}
+.btn-primary::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+  transform: translateX(-120%); transition: transform .6s;
+}
+.btn-primary:hover { box-shadow: 0 0 24px var(--glow), 0 6px 20px rgba(0,0,0,0.4); transform: translateY(-1px); }
+.btn-primary:hover::after { transform: translateX(120%); }
+.btn-primary:active { transform: translateY(0); }
+
+/* 次按钮：玻璃描边 */
+.btn {
+  background: rgba(18,26,43,0.6);
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: border-color .18s, box-shadow .2s, background .2s, color .18s;
+}
+.btn:hover {
+  border-color: var(--border-strong); color: #fff;
+  background: rgba(0,229,255,0.10);
+  box-shadow: 0 0 16px var(--glow-soft);
+}
+.btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+
+/* ── 输入框：暗底 + 聚焦霓虹光 ── */
+textarea, input[type="text"] {
+  background: rgba(7,11,20,0.7);
+  border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; transition: border-color .2s, box-shadow .2s;
+}
+textarea:focus, input[type="text"]:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--glow-soft), 0 0 16px var(--glow-soft);
+}
+
+/* ── 创作流程导航（步骤条 + 水流箭头） ── */
+.step-bar { display: flex; align-items: center; padding: 8px 6px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; padding: 4px 10px; border-radius: 8px; transition: transform .2s; }
+.step:hover { transform: translateY(-2px); }
+.step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 2px solid var(--border-strong); color: var(--text2); background: rgba(7,11,20,0.6); transition: all .3s; }
+.step-label { font-size: 12px; color: var(--text2); font-weight: 500; letter-spacing: .3px; white-space: nowrap; transition: color .3s; }
+
+/* 已完成步骤：渐变填充 + 光晕 */
+.step.done .step-num { background: var(--grad-accent); color: #04121a; border-color: transparent; box-shadow: 0 0 12px var(--glow-soft); }
+.step.done .step-label { color: var(--text); }
+/* 当前步骤：强调放大 */
+.step.active .step-num { background: var(--grad-accent); color: #04121a; border-color: transparent; box-shadow: 0 0 20px var(--glow); transform: scale(1.12); }
+.step.active .step-label { color: var(--accent); font-weight: 600; }
+
+/* 步骤间水流箭头 */
+.step-arrow { flex: 1 1 auto; height: 4px; min-width: 44px; max-width: 120px; margin: 0 -6px; position: relative; top: -10px; background: rgba(0,229,255,0.12); border-radius: 2px; overflow: hidden; }
+/* 箭头尖角 */
+.step-arrow::before { content: ''; position: absolute; right: -7px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 10px solid rgba(0,229,255,0.3); transition: border-left-color .4s; }
+/* 水流动画光带 */
+.step-arrow::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, var(--accent) 45%, #fff 50%, var(--accent) 55%, transparent 100%); background-size: 200% 100%; opacity: 0; }
+.step-arrow.flow::after { opacity: 1; animation: stepFlow 1.5s linear infinite; }
+/* 已流淌过的箭头：实色填充 + 缓动微流 */
+.step-arrow.done { background: linear-gradient(90deg, var(--accent), var(--blue)); }
+.step-arrow.done::before { border-left-color: var(--blue); }
+.step-arrow.done::after { opacity: 1; animation: stepFlow 3s linear infinite; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%); background-size: 200% 100%; }
+
+@keyframes stepFlow { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── 选题卡片 ── */
+.topic-card {
+  background: rgba(18,26,43,0.55); backdrop-filter: blur(8px);
+  border: 1px solid var(--border); border-radius: 10px;
+  transition: border-color .2s, box-shadow .25s, transform .2s;
+}
+.topic-card:hover {
+  border-color: var(--border-strong); transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 18px var(--glow-soft);
+}
+.topic-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 22px var(--glow-soft), inset 0 0 18px rgba(0,229,255,0.08);
+  background: rgba(0,229,255,0.10);
+}
+
+/* ── 大纲树 ── */
+.outline-node { border-radius: 8px; transition: background .15s, box-shadow .15s; }
+.outline-node:hover { background: rgba(0,229,255,0.08); }
+.outline-node.selected { background: rgba(0,229,255,0.12); box-shadow: inset 0 0 14px var(--glow-soft); }
+.outline-row { border-bottom: 1px dashed rgba(0,229,255,0.10); }
+
+/* ── 版本侧边栏 ── */
+.version-sidebar .card { position: sticky; top: 12px; }
+.version-list li {
+  background: rgba(7,11,20,0.5); border: 1px solid var(--border);
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.version-list li:hover { border-color: var(--border-strong); box-shadow: 0 0 14px var(--glow-soft); }
+.version-list li.selected {
+  border-color: var(--accent); background: rgba(0,229,255,0.10);
+  box-shadow: 0 0 16px var(--glow-soft);
+}
+.badge {
+  background: rgba(0,229,255,0.14); color: var(--accent);
+  border: 1px solid rgba(0,229,255,0.3);
+  box-shadow: 0 0 10px var(--glow-soft);
+}
+.badge-auto { background: rgba(59,130,246,0.14); color: var(--blue); border-color: rgba(59,130,246,0.3); box-shadow: 0 0 10px rgba(59,130,246,0.25); }
+.version-view-body {
+  background: rgba(7,11,20,0.7); border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* ── 进度指示器 ── */
+#content-progress {
+  color: var(--accent) !important; font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 8px var(--glow-soft); font-weight: 600;
+}
+
+/* ── 段落编辑 ── */
+.content-section { margin-bottom: 18px; }
+.content-section h2, .content-section h3, .content-section h4 {
+  margin: 0 0 6px; color: #f0f7ff; font-weight: 600;
+}
+.content-section h2 { font-size: 17px; border-bottom: 1px solid var(--border); padding-bottom: 3px; }
+.content-section h3 { font-size: 15px; color: #d8e6ff; }
+.content-section h4 { font-size: 14px; color: #bfcfe8; }
+.content-paragraph {
+  border: 1px solid transparent; border-radius: 8px;
+  transition: border-color .2s, box-shadow .2s;
+  line-height: 1.7; color: var(--text); text-indent: 2em; margin: 0;
+}
+.content-paragraph:hover { border-color: var(--border-strong); box-shadow: 0 0 14px var(--glow-soft); }
+.content-edited-hint { color: var(--accent) !important; text-shadow: 0 0 8px var(--glow-soft); }
+
+/* ── 空状态 ── */
+.dash-recent-empty { color: rgba(127,141,176,0.6); }
+
+/* ── 用户头像 ── */
+.user-avatar {
+  background: var(--grad-accent); color: #04121a; font-weight: 700;
+  box-shadow: 0 0 12px var(--glow-soft);
+}
+
+/* ── 滚动条 ── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(0,229,255,0.4), rgba(59,130,246,0.4));
+  border-radius: 8px; border: 2px solid transparent; background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, rgba(0,229,255,0.7), rgba(59,130,246,0.7)); background-clip: content-box; }
+
+/* ── 选中高亮 ── */
+::selection { background: rgba(0,229,255,0.35); color: #fff; }
+
+/* ── 微动画：卡片入场 ── */
+@keyframes tb-fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card { animation: tb-fadeUp .35s ease both; }
+.card:nth-child(2) { animation-delay: .04s; }
+.card:nth-child(3) { animation-delay: .08s; }
+.card:nth-child(4) { animation-delay: .12s; }
+
+/* ── 顶栏状态点脉冲 ── */
+.dot-green { box-shadow: 0 0 0 0 var(--glow); animation: tb-pulse 2s infinite; }
+@keyframes tb-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(0,229,255,0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(0,229,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,229,255,0); }
+}

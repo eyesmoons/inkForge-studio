@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>协同创作 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔥</div>
+      <h1>墨锻工坊</h1>
+      <p>AI 辅助内容工作台</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/collaborative" class="nav-item active" data-title="协同创作"><span class="icon">📝</span> 协同创作</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+            <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <a href="/settings.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">📝 协同创作</div>
+      <div class="topbar-actions">
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 协同创作项目列表 -->
+      <div class="card">
+        <div class="card-title">
+          <span>协同创作项目</span>
+          <button class="btn btn-primary" id="btn-create-project" onclick="createProject()">＋ 新建创作</button>
+        </div>
+        <div id="collab-projects-list">
+          <div class="dash-recent-empty">加载中...</div>
+        </div>
+      </div>
+
+      <!-- 历史文章列表 -->
+      <div class="card">
+        <div class="card-title">历史文章</div>
+        <div id="history-articles-list">
+          <div class="dash-recent-empty">加载中...</div>
+        </div>
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<script src="/common.js"></script>
+<script src="/collaborative.js"></script>
+<script>
+// ── 工具函数 ──
+function formatTime(ts) {
+  if (!ts) return '';
+  try {
+    // 形如 "2026-08-31 12:34:56" 或 "2026-08-31T12:34:56"，统一切片为 YYYY-MM-DD HH:MM
+    const s = String(ts).replace('T', ' ');
+    return s.slice(0, 16);
+  } catch (e) {
+    return '';
+  }
+}
+
+// ── 协同创作项目 ──
+async function loadCollaborativeProjects() {
+  const container = document.getElementById('collab-projects-list');
+  if (!container) return;
+  let projects = [];
+  try {
+    const res = await fetch('/api/collaborative/');
+    if (res.ok) {
+      const data = await res.json();
+      // 兼容多种返回形态：{projects:[...]} 或 [...] 或 {data:[...]}
+      projects = (data && (data.projects || data.data || (Array.isArray(data) ? data : []))) || [];
+    } else {
+      // 404 等：列表端点尚未实现，展示空态
+      console.info('协同创作列表端点暂未可用，使用空态');
+    }
+  } catch (e) {
+    console.error('加载协同创作项目失败:', e);
+  }
+
+  // 按更新时间倒序
+  projects.sort((a, b) => String(b.updated_at || b.created_at || '').localeCompare(String(a.updated_at || a.created_at || '')));
+
+  if (!projects.length) {
+    container.innerHTML = '<div class="dash-recent-empty">暂无协同创作项目，点击新建开始</div>';
+    return;
+  }
+
+  let html = '';
+  projects.forEach(p => {
+    const title = p.title || '未命名创作';
+    const phase = p.current_phase || 'topic';
+    const phaseMap = { topic: '选题', outline: '大纲', content: '内容', save: '保存' };
+    const phaseText = phaseMap[phase] || phase;
+    const updated = formatTime(p.updated_at || p.created_at);
+    const id = p.id;
+    html += `
+      <div class="dash-recent-item" onclick="window.location.href='/collaborative/${id}'">
+        <div class="dash-recent-info">
+          <div class="dash-recent-title">${title}</div>
+          <div class="dash-recent-meta">
+            <span class="status-badge status-draft">当前阶段：${phaseText}</span>
+            <span>${updated}</span>
+          </div>
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// 新建创作：直接进入全新创作（与导航项共用逻辑，不带历史）
+async function createProject() {
+  await createCollaborativeProject();
+}
+
+// ── 历史文章 ──
+// 历史文章的加载 / 查看 / 继续编辑 / 删除逻辑由 collaborative.js 提供（loadHistoryArticles 等）
+
+// ── 页面初始化 ──
+document.addEventListener('DOMContentLoaded', async function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('href') === currentPage) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  await loadCurrentUser();
+  loadCollaborativeProjects();
+  loadHistoryArticles();
+});
+</script>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+</body>
+</html>

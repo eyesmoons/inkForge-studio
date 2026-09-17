@@ -1,0 +1,9 @@
+{
+  "title": "生成一个古装美女",
+  "style": "tech",
+  "size": "wide",
+  "prompt": "回眸一笑百媚生，六宫粉黛无颜色. CRITICAL RULES: Do NOT include any text, letters, Chinese characters, or watermarks in the image. Do NOT generate overly smooth, plastic-like, or hyper-saturated AI-art style. Aim for photorealistic or high-quality editorial illustration style. Natural lighting, natural textures, subtle imperfections are preferred. Avoid shiny/glossy effects. Avoid rainbow gradients. Avoid 3D rendered look. The image should look like it was taken by a professional photographer or designed by a human graphic designer.",
+  "filename": "cover_1776343681.png",
+  "created_at": "2026-04-16 20:48:01",
+  "model": "cogview-4"
+}

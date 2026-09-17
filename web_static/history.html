@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>历史文章 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔥</div>
+      <h1>墨锻工坊</h1>
+      <p>AI 辅助内容工作台</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/collaborative" class="nav-item" data-title="协同创作"><span class="icon">📝</span> 协同创作</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+            <a href="/history.html" class="nav-item active" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <a href="/settings.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">📂 历史文章</div>
+      <div class="topbar-actions">
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 搜索栏 + 统计 -->
+      <div class="history-toolbar">
+        <div class="history-search-box">
+          <span class="history-search-icon">🔍</span>
+          <input type="text" id="history-search" class="history-search-input" placeholder="搜索文章标题..." oninput="onHistorySearch()">
+          <button class="history-search-clear" id="history-search-clear" onclick="clearHistorySearch()" style="display:none;">✕</button>
+        </div>
+        <div class="history-stats" id="history-stats"></div>
+      </div>
+
+      <!-- 文章列表（无限滚动） -->
+      <div class="history-scroll-container" id="history-scroll-container">
+        <div class="article-grid" id="article-grid">
+          <div style="color:var(--text2);font-size:14px;grid-column:1/-1;text-align:center;padding:40px;">
+            加载中...
+          </div>
+        </div>
+        <!-- 加载指示器 -->
+        <div class="history-load-more" id="history-load-more">
+          <div class="history-spinner"></div>
+          <span>加载更多...</span>
+        </div>
+        <!-- 到底提示 -->
+        <div class="history-end" id="history-end" style="display:none;">
+          <span>— 已加载全部文章 —</span>
+        </div>
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<!-- 文章模态框 -->
+<div class="modal-overlay" id="article-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-article-title">文章详情</div>
+      <button class="modal-close" onclick="closeModal('article-modal')">✕</button>
+    </div>
+    <pre id="modal-article-content" style="background:var(--bg3);padding:14px;border-radius:8px;font-size:12px;line-height:1.7;overflow:auto;max-height:400px;white-space:pre-wrap;color:var(--text);font-family:'SF Mono',monospace;border:1px solid var(--border);"></pre>
+  </div>
+</div>
+
+<!-- 删除确认弹框 -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:380px;">
+    <div style="text-align:center;padding:8px 0 20px;">
+      <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px;">确认删除</div>
+      <div id="confirm-modal-msg" style="font-size:13px;color:var(--text2);line-height:1.6;word-break:break-all;"></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeModal('confirm-modal')">取消</button>
+      <button id="confirm-modal-ok" class="btn" style="background:#ef4444;color:#fff;border:none;">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+<script src="/common.js"></script>
+<script>
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    if (item.getAttribute("href") === currentPage) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  loadAccounts().then(() => {
+    loadHistory();
+  });
+  startSSE();
+
+  // 无限滚动监听
+  const scrollContainer = document.getElementById('history-scroll-container');
+  if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      // 距离底部 100px 时触发加载
+      if (scrollHeight - scrollTop - clientHeight < 100) {
+        loadMoreArticles();
+      }
+    });
+  }
+
+  // 回车搜索
+  document.getElementById('history-search').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    }
+  });
+});
+</script>
+
+</body>
+</html>

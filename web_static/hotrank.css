@@ -1,0 +1,226 @@
+/* ========================================================
+   hotrank.css — 每日热搜专属样式
+   ======================================================== */
+
+/* ── 平台 Tab 切换栏 ─────────────────────────────────── */
+.hotrank-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  margin-bottom: 20px;
+}
+
+.hr-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.hr-tab:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.hr-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── 热搜卡片网格 ────────────────────────────────────── */
+.hotrank-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+/* ── 单个平台卡片 ────────────────────────────────────── */
+.hr-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.hr-card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  transform: translateY(-1px);
+}
+
+.hr-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.hr-card-icon { font-size: 18px; flex-shrink: 0; }
+.hr-card-name { font-weight: 600; font-size: 14px; flex: 1; }
+.hr-card-status {
+  font-size: 11px;
+  color: var(--text2);
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+}
+.hr-card-status.ok    { color: var(--accent); }
+.hr-card-status.error { color: var(--red); }
+
+.hr-refresh-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.hr-refresh-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: rotate(180deg);
+}
+
+.hr-card-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── 热搜列表 ─────────────────────────────────────────── */
+.hr-list {
+  list-style: none;
+  padding: 6px 0;
+  margin: 0;
+  max-height: 440px;
+  overflow-y: auto;
+}
+
+/* 滚动条美化 */
+.hr-list::-webkit-scrollbar { width: 4px; }
+.hr-list::-webkit-scrollbar-track { background: transparent; }
+.hr-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.hr-list::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
+.hr-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  transition: background 0.15s;
+}
+.hr-item:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* 排名徽章 */
+.hr-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.hr-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.hr-medal.gold   { background: rgba(255,198,0,0.2);  color: #92400e; }
+.hr-medal.silver { background: rgba(160,174,192,0.2); color: #4b5563; }
+.hr-medal.bronze { background: rgba(188,107,50,0.2);  color: #7c2d12; }
+
+/* 标题 */
+.hr-title {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.hr-title:hover { color: var(--accent); }
+
+/* 热度值 */
+.hr-hot {
+  font-size: 11px;
+  color: var(--text2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 空态 / 错误 ─────────────────────────────────────── */
+.hr-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text2);
+  font-size: 13px;
+}
+.hr-empty.error { color: var(--red); }
+
+/* ── 加载动画 ─────────────────────────────────────────── */
+.hr-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+.hr-loading-dots {
+  display: flex;
+  gap: 6px;
+}
+.hr-loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: hrDot 1.2s ease-in-out infinite;
+}
+.hr-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.hr-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes hrDot {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+  40%           { transform: scale(1.0); opacity: 1.0; }
+}
+
+/* ── 响应式（Tab 筛选时单列展示） ───────────────────────── */
+@media (max-width: 900px) {
+  .hotrank-grid { grid-template-columns: 1fr; }
+}
