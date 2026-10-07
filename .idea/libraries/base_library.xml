@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="base_library">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/dist/微信公众号发布助手.app/Contents/Frameworks/base_library.zip!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

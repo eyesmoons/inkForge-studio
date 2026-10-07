@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预览</title>
+<style>
+body { max-width: 680px; margin: 0 auto; padding: 20px; }
+</style>
+</head>
+<body>
+<h1 style="font-size:20px; font-weight:bold; color:#1a1a1a; margin:24px 0 16px; line-height:1.4; letter-spacing:1px">AI写代码前，先问自己这五个问题</h1>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">让AI写代码已经不新鲜了。但有个更隐蔽的问题，你可能没注意到：AI写得太多了。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">这不是凡尔赛。你让Claude Code帮你实现一个功能，它洋洋洒洒给你写了两百行。能跑，没问题。但两周后你回来改需求，盯着那一大坨代码，完全不想动。冗余代码不会立刻杀死项目，它会像慢性病一样，慢慢拖垮维护效率。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">GitHub上最近有个项目在趋势榜上冒头，叫Ponytail。它做的事情很简单：给AI编码代理装一套规则，让它们在动手写代码之前，先停下来想一想，真的需要写吗。数据也很直接，平均减少54%的代码量。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">这个数字值得认真看一眼。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">Ponytail给AI代理设计的核心机制叫「懒惰阶梯」，名字听着像段子，逻辑其实很严肃。当AI准备写一段新代码时，它被要求依次问自己几个问题：现有代码库里有没有能直接复用的？标准库或者语言原生功能能不能解决？这个问题是不是根本不需要写代码就能绕过？只有这些问题的答案都是「不行」，它才被允许动手写新代码。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">你可以把这理解为给AI装了一个「反过度工程」的刹车片。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">为什么这件事重要？因为当前主流AI编码工具的一个通病，就是过度生成。你让它加一个表单验证，它给你搭一套完整的校验框架。你让它修一个边界条件，它顺手帮你重构了三个函数。代码量上去了，review负担也跟着上去了。你以为AI在帮你提效，结果你花在审查和清理上的时间，可能比你自己写还多。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">Ponytail解决的就是这个错位。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">它目前支持Claude Code、Codex、Gemini CLI等二十多种代理工具。如果你已经在用Claude Code或者Cursor，接入成本基本是零。不需要改工作流，不需要换工具，装一个技能包的事。然后你会发现，AI给你返回的代码变短了，但该做的事情一件没少。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">这背后其实是一个更根本的问题：我们到底需要AI帮我们写更多代码，还是写更少代码？</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">过去一年，整个行业都在卷AI的代码生成能力。参数越来越大，上下文越来越长，生成的代码越来越复杂。但很少有人反过来问一句：生成的代码越多，就越好吗？软件工程几十年的经验早就告诉我们，代码是负债，不是资产。每一行代码都需要被阅读、被测试、被维护、被迁移。写得越少，出错的地方越少，改起来越快。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">Ponytail的思路，本质上是在把这条老经验翻译成AI能理解的规则。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">当然，54%这个数字需要正确理解。它不是说你所有项目的代码量都会减半。不同场景差异很大。有些任务本身就简单，压缩空间有限。有些任务AI确实容易写多，那减少的幅度可能超过54%。这个数字更像是一个方向性的信号：AI默认的代码生成策略，确实偏臃肿了。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">如果你正在用AI编码代理，我建议你认真考虑装一下这个技能包。不是因为54%这个数字有多震撼，而是因为它代表了一种更健康的协作方式。AI不应该是一个疯狂输出的代码机器，它应该是一个懂得克制、知道什么时候该停手的搭档。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">写代码这件事，少即是多。AI也不例外。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">从实践中来，到系统中去</p>
+</body>
+</html>

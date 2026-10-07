@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预览</title>
+<style>
+body { max-width: 680px; margin: 0 auto; padding: 20px; }
+</style>
+</head>
+<body>
+<h1 style="font-size:20px; font-weight:bold; color:#1a1a1a; margin:24px 0 16px; line-height:1.4; letter-spacing:1px">当你的AI程序员开始“拉帮结派”</h1>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">昨天下午，我让手头的AI编程助手写一个简单的用户登录模块。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">它给了我一段漂亮的JWT验证代码，然后开始解释OAuth 2.0的工作流程，接着突然建议我考虑用WebAuthn替代密码——当我问它“那前端页面呢”，它沉默了五秒，重新生成了另一段完全独立的React组件代码。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">这就是我们现在每天都在经历的AI编程现场：聪明，但混乱；能干，但不成体系。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">今天GitHub上冒出来的<strong style="font-weight:bold; color:#1a1a1a">Superpowers</strong>，想解决的正是这个问题。</p>
+<h2 style="font-size:20px; font-weight:bold; color:#1a3a6e; margin:24px 0 12px; padding:0 0 6px 12px; border-left:4px solid #07C160; line-height:1.4; letter-spacing:1px; border-left-color:#4f8ef7">不是又一个工具，而是一套“方法论”</h2>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">Superpowers的开源页面很朴素，没有炫酷的演示视频，README写得像学术论文。但它的野心不小：它不打算给你一个更聪明的AI程序员，它想给你的是一支<strong style="font-weight:bold; color:#1a1a1a">可管理的AI开发团队</strong>。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">核心概念叫“技能组合”。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">想象一下，你现在的AI助手就像个什么都会点的全栈工程师，但每次只能做一件事。Superpowers把这个工程师拆了——拆成需求分析师、架构师、前端工程师、后端工程师、测试工程师，每个角色都是一个独立的“技能模块”。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">你需要写一个完整的微服务？先调用“架构设计”技能生成技术方案，再把方案喂给“后端实现”技能写Go代码，同时“前端实现”技能在写React页面，“测试生成”技能已经在准备单元测试用例了。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">这些技能之间能互相通信，能共享上下文，能按预设的工作流协作。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">这听起来是不是有点耳熟？没错，这就是把人类软件工程里的<strong style="font-weight:bold; color:#1a1a1a">角色分工</strong>和<strong style="font-weight:bold; color:#1a1a1a">流程管理</strong>，套在了AI代理身上。</p>
+<h2 style="font-size:20px; font-weight:bold; color:#1a3a6e; margin:24px 0 12px; padding:0 0 6px 12px; border-left:4px solid #07C160; line-height:1.4; letter-spacing:1px; border-left-color:#4f8ef7">为什么现在需要这个？</h2>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">过去三年，AI编程工具的发展轨迹很清晰：从代码补全（Copilot），到单任务代理（Claude、GPT写函数），再到多步任务（Devin号称能独立完成整个项目）。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">但多步任务暴露了致命问题：<strong style="font-weight:bold; color:#1a1a1a">任务碎片化</strong>。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">你让AI“开发一个博客系统”，它可能先给你数据库schema，然后写用户模型，接着跳到前端路由配置——没有优先级，没有依赖管理，没有错误回滚。就像让一个天才但没经验的新人独立负责项目，结果往往是局部优秀，整体失控。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">Superpowers的创始人（团队匿名，只说是“来自多家科技公司的工程师”）在项目文档里写得很直白：“当前AI编码最大的瓶颈不是智力，而是组织能力。”</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">他们做了个实验：用传统提示词让GPT-4开发一个简单的电商购物车功能，成功率约40%；用Superpowers框架把任务拆解成“需求理解-接口设计-数据库设计-后端实现-前端实现-测试编写”六个技能链，成功率提升到82%。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">数字不会说谎。结构化，正在成为AI生产力的下一个关键变量。</p>
+<h2 style="font-size:20px; font-weight:bold; color:#1a3a6e; margin:24px 0 12px; padding:0 0 6px 12px; border-left:4px solid #07C160; line-height:1.4; letter-spacing:1px; border-left-color:#4f8ef7">但最让我警惕的是这个</h2>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">Superpowers文档里有一节叫“技能市场”，虽然现在还是空的，但蓝图已经画好了：未来开发者可以上传自己训练的专用技能，其他团队可以订阅使用。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">比如你可以训练一个“精通我司老旧Java代码库重构”的技能，我可以训练一个“快速生成符合医疗合规要求的API”的技能。这些技能像乐高积木一样，能在Superpowers框架里组合调用。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">这带来了两个层面的想象空间。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">对团队而言，这意味着<strong style="font-weight:bold; color:#1a1a1a">可积累的AI能力资产</strong>。你今天花时间调教好的一个代码审查技能，明天还能用，下个月还能用，甚至能分享给其他项目组。AI能力不再是一次性的提示词魔法，而成了可版本化、可传承的工程组件。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">对行业而言，这可能催生新的分工。会不会出现专门训练“金融风控系统技能”的供应商？会不会有团队靠出售“高性能游戏服务器技能”盈利？当技能成为商品，AI编程的生态可能比我们想得更快走向专业化。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">但我也在问自己：这是不是另一种形式的“锁入”？</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">如果你把整个开发流程都建立在Superpowers的技能链上，迁移成本会有多高？如果某个核心技能只有一家供应商提供，议价权在谁手里？开源框架是自由的，但上层的技能生态未必是。</p>
+<h2 style="font-size:20px; font-weight:bold; color:#1a3a6e; margin:24px 0 12px; padding:0 0 6px 12px; border-left:4px solid #07C160; line-height:1.4; letter-spacing:1px; border-left-color:#4f8ef7">冷静点，这还不是银弹</h2>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">我下载了Superpowers的早期代码，试着跑了几个例子。坦率说，现阶段它更像一个“严谨的实验”，而不是“开箱即用的产品”。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">技能之间的通信开销不小，一个简单任务可能要调用四五次大模型API，响应时间比直接问GPT-4慢两三倍。错误处理机制还很原始，一个技能失败，整个链就卡住，需要人工介入。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">文档里也承认，目前最适合的场景是“中等复杂度、流程明确的任务”，比如生成一个完整的CRUD模块，或者给现有代码库添加一套标准化的日志功能。至于“从零设计一个分布式系统”这种开放性问题，框架能提供的帮助有限。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">但方向是对的。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">过去我们总在讨论“AI会不会取代程序员”，问题可能问错了。更现实的路径是：AI不会取代程序员，但<strong style="font-weight:bold; color:#1a1a1a">使用AI工作流的程序员</strong>，会取代那些不用的人。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">Superpowers这样的框架，就是在定义“AI工作流”应该长什么样。它把随机的、不可靠的AI交互，变成可预测、可调试、可优化的工程过程。</p>
+<h2 style="font-size:20px; font-weight:bold; color:#1a3a6e; margin:24px 0 12px; padding:0 0 6px 12px; border-left:4px solid #07C160; line-height:1.4; letter-spacing:1px; border-left-color:#4f8ef7">所以，值得关注吗？</h2>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">如果你在技术决策岗位，我建议你本周就抽一小时看看Superpowers的GitHub仓库。不必立刻部署，但要理解它的设计哲学。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">它揭示了一个趋势：AI编程正在从“工具阶段”进入“流程阶段”。单点工具解决“怎么写代码”，流程框架解决“怎么组织AI写代码”。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">这对团队意味着三件事：第一，你需要开始思考AI在研发流程中的正式位置，而不仅仅是个人效率工具；第二，技能模块的设计和训练，可能成为新的技术债务；第三，跨AI代理的协作协议，会是下一个技术热点。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">我个人最欣赏Superpowers的一点是：它没有试图隐藏复杂性，而是承认复杂性，然后提供结构去管理它。这比那些承诺“全自动开发”的炒作实在得多。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">2026年才过四个月，但感觉AI编程的竞争已经换赛道了。去年大家还在比谁的代码补全更准，今年开始比谁能把多个AI组织得更像一支专业团队。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">那个混乱但充满惊喜的AI编程“西部时代”，可能真的要结束了。</p>
+<p style="font-size:16px; line-height:1.75; color:#333; margin:10px 0; letter-spacing:1px">从实践中来，到系统中去。</p>
+
+<p style="font-size:13px; line-height:1.75; color:#999; margin:10px 0; letter-spacing:1px; margin-top:32px; padding-top:16px; border-top:1px solid #e8e8e8; text-align:center" align="center">从实践中来，到系统中去</p>
+</body>
+</html>
