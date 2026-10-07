@@ -218,3 +218,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+.claude
+.codegraph
+.comet
+.idea
+.qoder
+.workbuddy
+.worktrees
+logs
+docs
+AGENTS.md
+CLAUDE.md
+build_log.txt
+WeChatPublisher.spec
+WeChatPublisher_mac.spec
