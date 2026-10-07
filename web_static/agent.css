@@ -1,0 +1,38 @@
+/* 智能体页面样式 */
+
+.agent-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.agent-input-panel {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.agent-result-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 响应式：窄屏改为上下堆叠 */
+@media (max-width: 900px) {
+  .agent-layout {
+    flex-direction: column;
+  }
+  .agent-input-panel {
+    width: 100%;
+  }
+}
+
+/* 结果区 textarea 高度自适应 */
+#agent-result-content {
+  min-height: 400px;
+  resize: vertical;
+  line-height: 1.7;
+}

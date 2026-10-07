@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公众号AI写作助手 - 3分钟搞定一篇高质量推文</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f5d4;
+            --secondary: #7b2cbf;
+            --accent: #ff006e;
+            --bg-dark: #0a0a0f;
+            --bg-card: rgba(20, 20, 30, 0.8);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --glow-primary: 0 0 30px rgba(0, 245, 212, 0.4);
+            --glow-secondary: 0 0 30px rgba(123, 44, 191, 0.4);
+            --glow-accent: 0 0 30px rgba(255, 0, 110, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* 粒子背景 */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 网格背景 */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 导航栏 */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 0;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: var(--glow-primary);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .nav-links a {
+            padding: 8px 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary);
+            background: rgba(0, 245, 212, 0.08);
+        }
+
+        .nav-cta {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--glow-primary);
+            flex-shrink: 0;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px rgba(0, 245, 212, 0.6);
+        }
+
+        /* 移动端导航 */
+        .nav-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(10, 10, 15, 0.98);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+                flex-direction: column;
+                gap: 4px;
+                padding: 16px;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                width: 100%;
+                text-align: center;
+                padding: 12px 16px;
+                font-size: 1rem;
+            }
+
+            .nav-toggle {
+                display: flex;
+            }
+
+            .nav-cta {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Hero区域 */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 32px;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 245, 212, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(0, 245, 212, 0.4); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            font-weight: 400;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 18px 48px;
+            background: linear-gradient(135deg, var(--primary), #00d4aa);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--glow-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 60px rgba(0, 245, 212, 0.6);
+        }
+
+        .btn-secondary {
+            padding: 18px 48px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: rgba(0, 245, 212, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .hero-price {
+            margin-top: 32px;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .hero-price .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0 8px;
+        }
+
+        /* 通用标题 */
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 6px 16px;
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.1), rgba(123, 44, 191, 0.1));
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .section-desc {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 痛点区域 */
+        .pain-points {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        .pain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .pain-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 0, 110, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .pain-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pain-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 0, 110, 0.4);
+            box-shadow: 0 20px 60px rgba(255, 0, 110, 0.15);
+        }
+
+        .pain-card:hover::before {
+            opacity: 1;
+        }
+
+        .pain-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 0, 110, 0.1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .pain-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .pain-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* 功能区域 */
+        .features {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 245, 212, 0.15);
+            border-radius: 20px;
+            padding: 40px 32px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 245, 212, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-12px);
+            border-color: rgba(0, 245, 212, 0.4);
+            box-shadow: 0 30px 80px rgba(0, 245, 212, 0.15);
+        }
+
+        .feature-card:hover::after {
+            opacity: 1;
+        }
+
+        .feature-number {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            font-size: 4rem;
+            font-weight: 900;
+            color: rgba(0, 245, 212, 0.05);
+            line-height: 1;
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            box-shadow: var(--glow-primary);
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .feature-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .feature-highlight {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(0, 245, 212, 0.1);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* 适用人群 */
+        .audience {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .audience-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(123, 44, 191, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .audience-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(123, 44, 191, 0.4);
+            box-shadow: 0 20px 60px rgba(123, 44, 191, 0.15);
+        }
+
+        .audience-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .audience-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .audience-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* 优势区域 */
+        .advantages {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .advantage-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 245, 212, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            gap: 24px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .advantage-card:hover {
+            transform: translateX(8px);
+            border-color: rgba(0, 245, 212, 0.3);
+            box-shadow: -10px 0 40px rgba(0, 245, 212, 0.1);
+        }
+
+        .advantage-icon {
+            width: 60px;
+            height: 60px;
+            min-width: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            box-shadow: var(--glow-primary);
+        }
+
+        .advantage-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .advantage-content p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* 功能概览区域 */
+        .overview {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        .overview-image {
+            max-width: 1000px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .overview-image:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 245, 212, 0.4);
+            box-shadow: 0 30px 100px rgba(0, 245, 212, 0.15);
+        }
+
+        .overview-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* CTA区域 */
+        .cta-section {
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(0, 245, 212, 0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.1), rgba(123, 44, 191, 0.1));
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            border-radius: 32px;
+            padding: 80px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent), var(--primary));
+            background-size: 300% 300%;
+            border-radius: 32px;
+            z-index: -1;
+            animation: gradient-border 4s ease infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes gradient-border {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .cta-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .cta-desc {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-price-box {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .cta-price-label {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .cta-price {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cta-price-unit {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        /* 底部 */
+        footer {
+            padding: 60px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .footer-content {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .footer-content a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* 动画 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 浮动动画 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .hero-stats {
+                gap: 32px;
+            }
+
+            .stat-value {
+                font-size: 2.5rem;
+            }
+
+            .cta-box {
+                padding: 60px 32px;
+            }
+
+            .cta-price {
+                font-size: 3rem;
+            }
+
+            .advantage-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+
+        /* 购买弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 820px;
+            width: 94%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+            display: flex;
+            gap: 40px;
+            align-items: stretch;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .modal-right {
+            width: 260px;
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            padding-left: 40px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 36px;
+            text-align: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 0, 110, 0.3);
+        }
+
+        .modal h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .modal-price {
+            margin-bottom: 24px;
+        }
+
+        .modal-price .price {
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .modal-price .original {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-decoration: line-through;
+            margin-left: 10px;
+        }
+
+        .modal-features {
+            list-style: none;
+            margin-bottom: 0;
+        }
+
+        .modal-features li {
+            padding: 9px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.92rem;
+        }
+
+        .modal-features li:last-child {
+            border-bottom: none;
+        }
+
+        .modal-features .check {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .modal-cta {
+            width: 100%;
+            padding: 16px;
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 640px) {
+            .modal {
+                flex-direction: column;
+                gap: 24px;
+            }
+            .modal-right {
+                width: 100%;
+                min-width: unset;
+                border-left: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                padding-left: 0;
+                padding-top: 24px;
+            }
+        }
+
+        .contact-section {
+            margin-top: 16px;
+        }
+
+        .contact-section p.contact-label {
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .contact-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(0, 245, 212, 0.06);
+            border: 1px solid rgba(0, 245, 212, 0.15);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 250px;
+        }
+
+        .contact-item:hover {
+            background: rgba(0, 245, 212, 0.12);
+            border-color: rgba(0, 245, 212, 0.4);
+            transform: translateX(4px);
+        }
+
+        .contact-item-icon {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .contact-item-info {
+            flex: 1;
+        }
+
+        .contact-item-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .contact-item-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.3px;
+        }
+
+        .contact-copy-btn {
+            padding: 5px 12px;
+            background: transparent;
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            border-radius: 6px;
+            color: var(--primary);
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .contact-copy-btn:hover {
+            background: rgba(0, 245, 212, 0.15);
+        }
+
+        .contact-copy-btn.copied {
+            border-color: rgba(0, 245, 212, 0.6);
+            background: rgba(0, 245, 212, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <canvas id="particles-canvas"></canvas>
+    <div class="grid-bg"></div>
+
+    <!-- 导航栏 -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <div class="logo-icon">✍️</div>
+                <span>AI写作助手</span>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <a href="#top">首页</a>
+                <a href="#pain">告别痛苦</a>
+                <a href="#features">核心功能</a>
+                <a href="#audience">适用人群</a>
+                <a href="#advantages">核心优势</a>
+                <a href="#overview">功能概览</a>
+                <a href="#pricing">价格方案</a>
+            </div>
+            <button class="nav-toggle" onclick="toggleNav()" aria-label="菜单">☰</button>
+            <button class="nav-cta" onclick="openModal()">立即购买</button>
+        </div>
+    </nav>
+
+    <!-- Hero区域 -->
+    <section class="hero" id="top">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span>🚀</span>
+                    <span>新一代AI创作神器</span>
+                </div>
+                <h1>公众号爆文生成器</h1>
+                <p class="hero-subtitle">平均3分钟生成一篇高质量推文，从选题 -> 写稿 -> 发布，全部自动化完成。</p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">48x</div>
+                        <div class="stat-label">效率提升</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">分钟/篇</div>
+                    </div>
+                </div>
+
+                <div class="hero-actions">
+                    <button class="btn-primary" onclick="openModal()">
+                        限时特惠 ¥69
+                    </button>
+                </div>
+
+                <div class="hero-price">
+                    原价 <span style="text-decoration: line-through; opacity: 0.6;">¥199</span>
+                    限时特惠 <span class="price">¥69</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 痛点区域 -->
+    <section class="pain-points" id="pain">
+        <div class="container">
+            <div class="section-header fade-in">
+                <div class="section-tag">你的痛点</div>
+                <h2 class="section-title">你是否正在经历这些痛苦？</h2>
+                <p class="section-desc">每天都在重复同样的煎熬，让创作变成了负担</p>
+            </div>
+
+            <div class="pain-grid">
+                <div class="pain-card fade-in">
+                    <div class="pain-icon">💭</div>
+                    <h3 class="pain-title">灵感枯竭</h3>
+                    <p class="pain-desc">每天想选题、查资料，耗尽精力却写不出几篇内容</p>
+                </div>
+                <div class="pain-card fade-in">
+                    <div class="pain-icon">🐢</div>
+                    <h3 class="pain-title">写稿太慢</h3>
+                    <p class="pain-desc">人工写一篇2000字文章需要3-4小时，一周最多产出3-4篇</p>
+                </div>
+                <div class="pain-card fade-in">
+                    <div class="pain-icon">🎨</div>
+                    <h3 class="pain-title">排版麻烦</h3>
+                    <p class="pain-desc">在公众号编辑器和软件之间来回切换，调整格式花半天</p>
+                </div>
+                <div class="pain-card fade-in">
+                    <div class="pain-icon">📐</div>
+                    <h3 class="pain-title">封面对齐难</h3>
+                    <p class="pain-desc">用PS或在线工具做封面，尺寸不对、字体不统一</p>
+                </div>
+                <div class="pain-card fade-in">
+                    <div class="pain-icon">📤</div>
+                    <h3 class="pain-title">发布繁琐</h3>
+                    <p class="pain-desc">选题→写稿→排版→预览→推送，每个步骤都要人工操作</p>
+                </div>
+                <div class="pain-card fade-in">
+                    <div class="pain-icon">📉</div>
+                    <h3 class="pain-title">质量不稳定</h3>
+                    <p class="pain-desc">自己写有时发挥失常，外包又怕质量参差不齐</p>
+                </div>
+                <div class="pain-card fade-in">
+                    <div class="pain-icon">🔄</div>
+                    <h3 class="pain-title">多账号难管理</h3>
+                    <p class="pain-desc">多个公众号来回切换，时间全浪费在登录切换上</p>
+                </div>
+                <div class="pain-card fade-in">
+                    <div class="pain-icon">😴</div>
+                    <h3 class="pain-title">懒得写</h3>
+                    <p class="pain-desc">没人督促就拖延，账号都快长草了也不想动</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功能区域 -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header fade-in">
+                <div class="section-tag">核心功能</div>
+                <h2 class="section-title">这个系统能做什么？</h2>
+                <p class="section-desc">一站式解决公众号创作的所有痛点</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <span class="feature-number">01</span>
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">智能选题</h3>
+                    <p class="feature-desc">AI实时抓取热点，自动评分排序。从"找半天"到"1分钟获取10个高质量选题"，数据驱动，不再拍脑袋。</p>
+                    <span class="feature-highlight">效率提升 10x</span>
+                </div>
+                <div class="feature-card fade-in">
+                    <span class="feature-number">02</span>
+                    <div class="feature-icon">✍️</div>
+                    <h3 class="feature-title">AI写稿</h3>
+                    <p class="feature-desc">输入关键词，AI自动生成2000字深度好文。内置专业提示词，模仿真人风格，还自带"去AI味儿"处理。</p>
+                    <span class="feature-highlight">4小时 → 3分钟</span>
+                </div>
+                <div class="feature-card fade-in">
+                    <span class="feature-number">03</span>
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">自动排版</h3>
+                    <p class="feature-desc">写好的内容，点一下按钮，自动转为公众号标准格式。再也不用在编辑器之间来回切换。</p>
+                    <span class="feature-highlight">30分钟 → 自动</span>
+                </div>
+                <div class="feature-card fade-in">
+                    <span class="feature-number">04</span>
+                    <div class="feature-icon">🖼️</div>
+                    <h3 class="feature-title">封面生成</h3>
+                    <p class="feature-desc">自动生成900×383px标准封面图，3秒搞定一张。尺寸永远对，字体永远统一。</p>
+                    <span class="feature-highlight">30分钟 → 3秒</span>
+                </div>
+                <div class="feature-card fade-in">
+                    <span class="feature-number">05</span>
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">一键发布</h3>
+                    <p class="feature-desc">选题→写稿→排版→封面→预览→推送，全部自动完成。你只需要做一件事：点一下"确认发布"。</p>
+                    <span class="feature-highlight">2小时 → 3分钟</span>
+                </div>
+                <div class="feature-card fade-in">
+                    <span class="feature-number">06</span>
+                    <div class="feature-icon">⏰</div>
+                    <h3 class="feature-title">定时任务</h3>
+                    <p class="feature-desc">设置好发布时间，系统自动写、自动排、自动发。懒人福音，再也不用担心账号断更。</p>
+                    <span class="feature-highlight">躺平也能日更</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 适用人群 -->
+    <section class="audience" id="audience">
+        <div class="container">
+            <div class="section-header fade-in">
+                <div class="section-tag">适用人群</div>
+                <h2 class="section-title">谁在使用？</h2>
+                <p class="section-desc">无论你是个人博主还是企业团队，都能大幅提升创作效率</p>
+            </div>
+
+            <div class="audience-grid">
+                <div class="audience-card fade-in">
+                    <div class="audience-icon">🏢</div>
+                    <h3 class="audience-title">企业自媒体</h3>
+                    <p class="audience-desc">需要高频发布，保持内容更新频率，但人手有限</p>
+                </div>
+                <div class="audience-card fade-in">
+                    <div class="audience-icon">📊</div>
+                    <h3 class="audience-title">自媒体工作室</h3>
+                    <p class="audience-desc">运营多个公众号，需要批量生产内容，降本增效</p>
+                </div>
+                <div class="audience-card fade-in">
+                    <div class="audience-icon">💼</div>
+                    <h3 class="audience-title">个人博主</h3>
+                    <p class="audience-desc">时间有限，但想保持稳定的发布节奏，不想被写作绑架</p>
+                </div>
+                <div class="audience-card fade-in">
+                    <div class="audience-icon">🎯</div>
+                    <h3 class="audience-title">营销团队</h3>
+                    <p class="audience-desc">需要快速产出行业热点内容，抢占流量先机</p>
+                </div>
+                <div class="audience-card fade-in">
+                    <div class="audience-icon">🚀</div>
+                    <h3 class="audience-title">创业公司</h3>
+                    <p class="audience-desc">预算有限，无法雇佣专业内容团队，一人要当多人用</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 优势区域 -->
+    <section class="advantages" id="advantages">
+        <div class="container">
+            <div class="section-header fade-in">
+                <div class="section-tag">核心优势</div>
+                <h2 class="section-title">为什么选择我们？</h2>
+                <p class="section-desc">7大核心优势，碾压传统创作方式</p>
+            </div>
+
+            <div class="advantages-grid">
+                <div class="advantage-card fade-in">
+                    <div class="advantage-icon">⚡</div>
+                    <div class="advantage-content">
+                        <h3>效率提升48倍</h3>
+                        <p>从选题到发布，从人工4小时缩短到5分钟。省下来的时间，你可以去谈客户、做产品、陪家人。</p>
+                    </div>
+                </div>
+                <div class="advantage-card fade-in">
+                    <div class="advantage-icon">📈</div>
+                    <div class="advantage-content">
+                        <h3>质量稳定可控</h3>
+                        <p>内置专业写作风格，不会因为今天状态不好就写砸了。每一篇都是稳定输出，读者体验一致。</p>
+                    </div>
+                </div>
+                <div class="advantage-card fade-in">
+                    <div class="advantage-icon">💰</div>
+                    <div class="advantage-content">
+                        <h3>成本大幅降低</h3>
+                        <p>无需雇佣专职编辑，一个人能管理多个账号。省下的工资，够买好几套系统。</p>
+                    </div>
+                </div>
+                <div class="advantage-card fade-in">
+                    <div class="advantage-icon">📊</div>
+                    <div class="advantage-content">
+                        <h3>数据驱动选题</h3>
+                        <p>AI评分筛选，不再靠"感觉"。每一篇都是经过数据验证的热点选题，爆款概率大大提升。</p>
+                    </div>
+                </div>
+                <div class="advantage-card fade-in">
+                    <div class="advantage-icon">🤖</div>
+                    <div class="advantage-content">
+                        <h3>完全自动化</h3>
+                        <p>设置定时任务，系统自动生成和发布。你只需要审核一下，连发布都不用亲自点。</p>
+                    </div>
+                </div>
+                <div class="advantage-card fade-in">
+                    <div class="advantage-icon">🔗</div>
+                    <div class="advantage-content">
+                        <h3>多账号管理</h3>
+                        <p>一套系统，运营多个公众号。来回切换的时间，都能写好几篇了。</p>
+                    </div>
+                </div>
+                <div class="advantage-card fade-in">
+                    <div class="advantage-icon">🔒</div>
+                    <div class="advantage-content">
+                        <h3>本地化部署</h3>
+                        <p>数据在自己手里，安全可控。不用担心第三方平台泄露账号信息。</p>
+                    </div>
+                </div>
+                <div class="advantage-card fade-in">
+                    <div class="advantage-icon">🍎</div>
+                    <div class="advantage-content">
+                        <h3>Mac/Windows双平台</h3>
+                        <p>支持Mac和Windows系统，无论你用什么电脑都能流畅运行。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功能概览 -->
+    <section class="overview" id="overview">
+        <div class="container">
+            <div class="section-header fade-in">
+                <div class="section-tag">产品截图</div>
+                <h2 class="section-title">功能概览</h2>
+                <p class="section-desc">一图读懂所有核心功能</p>
+            </div>
+            <div class="overview-image fade-in">
+                <img src="功能概览.png" alt="功能概览截图">
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA区域 -->
+    <section class="cta-section" id="pricing">
+        <div class="container">
+            <div class="cta-box fade-in">
+                <h2 class="cta-title">把时间还给你，把效率交给AI</h2>
+                <p class="cta-desc">内容创作不应该成为负担。你擅长的是思考、是表达、是连接读者。而那些重复性的工作——应该交给机器。</p>
+                
+                <div class="cta-price-box">
+                    <span class="cta-price-label">限时特惠价</span>
+                    <span class="cta-price">¥69</span>
+                    <span class="cta-price-unit">/ 永久授权</span>
+                </div>
+
+                <button class="btn-primary cta-btn" onclick="openModal()">
+                    立即获取，开启高效创作之旅
+                </button>
+
+                <p style="margin-top: 24px; color: var(--text-secondary); font-size: 0.9rem;">
+                    ✨ 从今天开始，告别熬夜写稿，3分钟搞定一篇高质量推文
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 底部 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>© 2026 AI写作助手 · 让创作更高效</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 购买弹窗 -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">×</button>
+
+            <!-- 左侧：标题+价格+功能列表 -->
+            <div class="modal-left">
+                <h2>限时特惠 🎉</h2>
+                <div class="modal-price">
+                    <span class="price">¥69</span>
+                    <span class="original">¥199</span>
+                </div>
+                <ul class="modal-features">
+                    <li><span class="check">✓</span> AI智能选题</li>
+                    <li><span class="check">✓</span> AI智能生成高质量爆文</li>
+                    <li><span class="check">✓</span> 一键排版+封面生成</li>
+                    <li><span class="check">✓</span> 根据所给链接改写爆款文章</li>
+                    <li><span class="check">✓</span> 定时自动发布任务</li>
+                    <li><span class="check">✓</span> 多账号管理</li>
+                    <li><span class="check">✓</span> Mac/Windows双平台支持</li>
+                    <li><span class="check">✓</span> 永久授权 · 终身更新</li>
+                </ul>
+            </div>
+
+            <!-- 右侧：购买按钮+联系方式 -->
+            <div class="modal-right">
+                <button class="btn-primary modal-cta" onclick="handlePurchase()">
+                    立即购买
+                </button>
+                <div class="contact-section">
+                    <p class="contact-label">购买咨询 · 联系我们</p>
+                    <div class="contact-items">
+                        <div class="contact-item" onclick="copyText('your@email.com', this)">
+                            <div class="contact-item-icon">📧</div>
+                            <div class="contact-item-info">
+                                <div class="contact-item-label">邮箱</div>
+                                <div class="contact-item-value">1105724232@qq.com</div>
+                            </div>
+                        </div>
+                        <div class="contact-item" onclick="copyText('yourwechat', this)">
+                            <div class="contact-item-icon">💬</div>
+                            <div class="contact-item-info">
+                                <div class="contact-item-label">客服微信号</div>
+                                <div class="contact-item-value">eyesmoons</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 粒子背景
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let animationId;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function createParticles() {
+            particles = [];
+            const particleCount = Math.floor((canvas.width * canvas.height) / 15000);
+            
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    radius: Math.random() * 2 + 0.5,
+                    color: Math.random() > 0.5 ? 'rgba(0, 245, 212, 0.6)' : 'rgba(123, 44, 191, 0.6)'
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制连线
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 245, 212, ${0.15 * (1 - distance / 150)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // 绘制粒子
+            particles.forEach(particle => {
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                ctx.fillStyle = particle.color;
+                ctx.fill();
+                
+                // 更新位置
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                
+                // 边界检测
+                if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+                if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+            });
+
+            animationId = requestAnimationFrame(drawParticles);
+        }
+
+        resizeCanvas();
+        createParticles();
+        drawParticles();
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            createParticles();
+        });
+
+        // 滚动动画
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        fadeElements.forEach(el => observer.observe(el));
+
+        // 弹窗控制
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function copyText(text, el) {
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = el.querySelector('.contact-copy-btn');
+                if (btn) {
+                    btn.textContent = '已复制 ✓';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = '复制';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }
+            }).catch(() => {
+                // fallback
+                const input = document.createElement('input');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                const btn = el.querySelector('.contact-copy-btn');
+                if (btn) {
+                    btn.textContent = '已复制 ✓';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = '复制';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }
+            });
+        }
+
+        function handlePurchase() {
+            // 这里可以添加实际的购买逻辑
+            alert('感谢您的购买意向！\n\n请扫描二维码联系客服完成购买。\n\n我们会在24小时内与您联系。');
+        }
+
+        // 点击遮罩关闭
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') {
+                closeModal();
+            }
+        });
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // 移动端菜单切换
+        function toggleNav() {
+            document.getElementById('navLinks').classList.toggle('open');
+        }
+
+        // 滚动高亮当前导航项
+        const navLinks = document.querySelectorAll('.nav-links a');
+        const sections = document.querySelectorAll('section[id]');
+
+        function highlightNav() {
+            let current = 'top';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 120;
+                if (window.pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // 点击导航链接后关闭移动端菜单
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('open');
+            });
+        });
+
+        // 导航栏滚动效果
+        let lastScroll = 0;
+        const nav = document.querySelector('nav');
+        
+        window.addEventListener('scroll', () => {
+            highlightNav();
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > 100) {
+                nav.style.background = 'rgba(10, 10, 15, 0.95)';
+                nav.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.3)';
+            } else {
+                nav.style.background = 'rgba(10, 10, 15, 0.8)';
+                nav.style.boxShadow = 'none';
+            }
+            
+            lastScroll = currentScroll;
+        });
+    </script>
+</body>
+</html>

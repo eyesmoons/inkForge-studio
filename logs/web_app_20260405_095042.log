@@ -1,0 +1,180 @@
+
+🚀 微信公众号管理界面启动中...
+   打开浏览器访问：http://localhost:5678
+
+[Scheduler] 用户 2 ✅ 定时任务已启用，每天 09:48 执行
+[Scheduler] APScheduler 启动成功，已加载 1 个定时任务
+ * Serving Flask app 'web_app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5678
+ * Running on http://192.168.1.218:5678
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [05/Apr/2026 09:50:50] "[36mGET /topics.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:50] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:50] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:50] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:50] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:50] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:50] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:51] "[36mGET /topics.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:51] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:51] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:51] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:51] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:51] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:51] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:52] "[36mGET /dashboard.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:52] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:52] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:50:52] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:52] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:52] "GET /api/stats HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:52] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:52] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:50:54] "POST /api/auto HTTP/1.1" 200 -
+📱 当前使用公众号：大数据实践录 (ID: bigdata)
+127.0.0.1 - - [05/Apr/2026 09:50:54] "GET /api/logs/task_1ays48q5 HTTP/1.1" 200 -
+
+🔍 Step 1/5：联网自动选题...
+   [1/3] 分析选题关键词...
+   🤖 AI 分析关键词：['AI编程 2026年04月05日 更新', 'AI大模型 今日 发布 动态', '2026年04月 AI工具 新功能', 'AI开发 最新进展 今天']
+   [2/3] 搜索获取当天最新内容（共 4 个关键词）...
+      🔍 搜索：AI编程 2026年04月05日 更新
+   [ddgo] 限流，等待 5.0s 后重试...
+      🔍 搜索：AI大模型 今日 发布 动态
+   [ddgo] 限流，等待 4.1s 后重试...
+      🔍 搜索：2026年04月 AI工具 新功能
+   [ddgo] 限流，等待 3.7s 后重试...
+      🔍 搜索：AI开发 最新进展 今天
+   [ddgo] 限流，等待 4.9s 后重试...
+   去重后：10 条原始结果
+   [3/3] AI 整理搜索结果成选题...
+   🤖 使用 openai 整理真实新闻成选题...
+   ✅ AI 整理成功，共 10 条选题
+   🤖 使用 openai 对前 8 条选题进行 AI 评分...
+      1. DeepMind发布Nano Banana 2图像生成模型... → 8.0 分
+      2. OpenAI宣布ChatGPT代码解释器功能全面开放... → 9.0 分
+      3. 微软发布Visual Studio Code AI Copilot重大更新... → 9.0 分
+      4. 国内首个AI原生数据库管理工具“DB-GPT”公测... → 8.0 分
+      5. Grok-1.5模型API今日正式面向开发者开放... → 8.0 分
+      6. 华为“盘古”大模型推出面向开发者的轻量化微调工具... → 8.0 分
+      7. AI代码审计平台“DeepScan”获千万美元融资... → 8.0 分
+      8. Replit与Anthropic达成合作，集成Claude模型... → 9.0 分
+   获取到 10 条选题
+   🔥 1. OpenAI宣布ChatGPT代码解释器功能全面开放
+   🔥 2. 微软发布Visual Studio Code AI Copilot重大更新
+   🔥 3. Replit与Anthropic达成合作，集成Claude模型
+   🔥 4. DeepMind发布Nano Banana 2图像生成模型
+   🔥 5. 国内首个AI原生数据库管理工具“DB-GPT”公测
+   ... 共 10 条
+
+🏆 自动选定：OpenAI宣布ChatGPT代码解释器功能全面开放
+
+🖊️  Step 2/5：AI 生成文章（风格：观点评论，字数：2000）...
+   💡 使用 config.json 中的 AI 配置（api.deepseek.com / deepseek-chat）
+   🤖 LLM 后端：openai（deepseek-chat）
+   ✅ 文章已保存：/Users/casey/WorkBuddy/20260325140058/wechat-publisher/output/articles/20260405_095241_OpenAI宣布ChatGPT代码解释器功能全面开放.md
+   文章长度：2455 字符
+
+⚙️  Step 3-5/5：转 HTML → 封面 → 推送草稿...
+
+📄 文章：ChatGPT把Excel给“杀”了
+🔍 提取关键词...
+Building prefix dict from the default dictionary ...
+Loading model from cache /var/folders/pj/m8bj_0xj3sd_tyf_gzd5r0kh0000gn/T/jieba.cache
+Loading model cost 0.390 seconds.
+Prefix dict has been built successfully.
+   关键词：ChatGPT / Excel / 代码 / 数据 / 解释器
+   摘要：ChatGPT把Excel给“杀”了 今天早上，OpenAI扔了个不大不小的炸弹...
+📝 转换 Markdown → HTML...
+   ✅ 预览文件：/Users/casey/WorkBuddy/20260325140058/wechat-publisher/output/drafts/20260405_095241_OpenAI宣布ChatGPT代码解释器功能全面开放_preview.html
+🎨 生成封面图（主题：blue）...
+✅ 本地封面生成成功：/Users/casey/WorkBuddy/20260325140058/wechat-publisher/output/covers/cover_20260405_095241_OpenAI宣布ChatGPT代码解释器功能全面开放.jpg
+   ✅ 封面：/Users/casey/WorkBuddy/20260325140058/wechat-publisher/output/covers/cover_20260405_095241_OpenAI宣布ChatGPT代码解释器功能全面开放.jpg
+
+📝 创建草稿：ChatGPT把Excel给“杀”了
+   ✅ 封面图上传成功
+   ✅ 草稿创建成功：kwostP6tiu6w8HJksi67...
+   💡 请登录公众号后台审核后手动发布
+   🔍 [调试] account_db_id=1, preview_only=False, status=published
+   💾 文章已保存到数据库（ID: 53，status: published，release_status: released）
+127.0.0.1 - - [05/Apr/2026 09:52:45] "GET /api/articles/20260405_095241_OpenAI宣布ChatGPT代码解释器功能全面开放.md HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:52:45] "GET /api/stats HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:52] "[36mGET /topics.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:52] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:52] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:52] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:52] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:52] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:52] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "[36mGET /history.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/articles HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "[36mGET /dashboard.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/stats HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:53] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:56] "[36mGET /history.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:56] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:56] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:53:56] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:56] "GET /api/articles HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:56] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:56] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:53:56] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:00] "POST /api/accounts/2/set_default HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:00] "GET /api/articles HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:02] "POST /api/accounts/1/set_default HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:02] "GET /api/articles HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:05] "[36mGET /history.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:05] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:05] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:05] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:05] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:05] "GET /api/articles HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:05] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:05] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:07] "GET /api/articles/20260405_095241_OpenAI宣布ChatGPT代码解释器功能全面开放.md HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:07] "[36mGET /write.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:07] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:07] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:07] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:07] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:08] "POST /api/preview HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:08] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:08] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:26] "[36mGET /dashboard.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:26] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:26] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:54:26] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:26] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:26] "GET /api/stats HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:26] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:54:26] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:56:17] "[36mGET /history.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:56:17] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:56:17] "[36mGET /common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 09:56:17] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:56:17] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:56:17] "GET /api/articles HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:56:17] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 09:56:17] "GET /api/config HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 18:38:31] "[36mGET /history.html HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 18:38:31] "[36mGET /common.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [05/Apr/2026 18:38:31] "GET /common.js HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 18:38:31] "GET /api/user/current HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 18:38:31] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 18:38:31] "GET /api/articles HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 18:38:31] "GET /api/accounts HTTP/1.1" 200 -
+127.0.0.1 - - [05/Apr/2026 18:38:31] "GET /api/config HTTP/1.1" 200 -

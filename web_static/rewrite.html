@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>链接改写 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<style>
+  /* ══════════════════════════════════════════════
+     STEP STRIP — 科技感步骤条引擎
+     ══════════════════════════════════════════════ */
+
+  :root {
+    --step-c0: rgba(255,255,255,0.08);
+    --step-c1: #638af9;
+    --step-c2: #f5a623;
+    --step-c3: #a855f7;
+    --step-c4: #ec4899;
+    --step-c5: #07c160;
+    --step-c6: #06b6d4;
+    --step-c7: #f97316;
+    --glow-1: rgba(99,138,243,0.45);
+    --glow-2: rgba(245,166,35,0.45);
+    --glow-3: rgba(168,85,247,0.45);
+    --glow-4: rgba(236,72,153,0.40);
+    --glow-5: rgba(7,193,96,0.40);
+    --glow-6: rgba(6,182,212,0.40);
+    --glow-7: rgba(249,115,22,0.40);
+  }
+
+  /* ══ 步骤条容器 ══ */
+  .step-strip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 28px 16px 8px;
+    margin-bottom: 24px;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(99,138,243,0.07) 0%, transparent 55%),
+      linear-gradient(180deg, rgba(20,24,36,0.6) 0%, transparent 100%);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.05);
+    overflow: hidden;
+  }
+
+  /* 背景网格线 */
+  .step-strip::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(99,138,243,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99,138,243,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.6;
+  }
+
+  /* 连接线底轨 */
+  .track-rail {
+    position: absolute;
+    top: 50%;
+    left: 56px;
+    right: 56px;
+    height: 3px;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .track-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--step-c1), var(--step-c3), var(--step-c5));
+    border-radius: 3px;
+    transition: width 0.65s cubic-bezier(.22,1,.36,1);
+    box-shadow: 0 0 12px rgba(99,138,243,0.25);
+    position: relative;
+  }
+  .track-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -3px; bottom: -3px;
+    width: 18px;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.7), transparent);
+    animation: trackGlow 1.6s ease-in-out infinite;
+  }
+  @keyframes trackGlow {
+    0%,100% { opacity: 0.4; transform: scaleX(0.8); }
+    50% { opacity: 1; transform: scaleX(1.2); }
+  }
+
+  /* 流光粒子 */
+  .particle-runner {
+    position: absolute;
+    top: 50%;
+    left: 56px;
+    width: 8px;
+    height: 8px;
+    transform: translateY(-50%);
+    background: var(--step-c1);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--glow-1), 0 0 24px var(--glow-1);
+    opacity: 0;
+    z-index: 2;
+    transition: left 0.65s cubic-bezier(.22,1,.36,1), opacity 0.3s;
+  }
+  .particle-runner.active { opacity: 1; }
+
+  /* ══ 单个步骤节点 ══ */
+  .step-node {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 12px;
+    flex: 1;
+    max-width: 110px;
+    transition: all 0.3s ease;
+  }
+
+  /* 外圈光晕 */
+  .step-ring {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.4s cubic-bezier(.22,1,.36,1);
+    background: rgba(15,18,28,0.85);
+    border: 2px solid rgba(255,255,255,0.07);
+
+    /* 呼吸光环 — 默认隐藏 */
+  }
+  .step-ring::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 70%, var(--node-color, var(--step-c1)) 100%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    animation: ringSpin 4s linear infinite paused;
+    z-index: -1;
+  }
+  @keyframes ringSpin { to { transform: rotate(360deg); } }
+
+  /* 扩散光晕层 */
+  .step-ring::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: var(--node-color, var(--step-c1));
+    filter: blur(14px);
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: -2;
+  }
+
+  /* 各节点颜色 */
+  .sn-1 { --node-color: var(--step-c1); --node-glow: var(--glow-1); }
+  .sn-2 { --node-color: var(--step-c2); --node-glow: var(--glow-2); }
+  .sn-3 { --node-color: var(--step-c3); --node-glow: var(--glow-3); }
+  .sn-4 { --node-color: var(--step-c4); --node-glow: var(--glow-4); }
+  .sn-5 { --node-color: var(--step-c5); --node-glow: var(--glow-5); }
+  .sn-6 { --node-color: var(--step-c6); --node-glow: var(--glow-6); }
+  .sn-7 { --node-color: var(--step-c7); --node-glow: var(--glow-7); }
+
+  /* 图标内圈 */
+  .step-icon-inner {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    transition: all 0.35s ease;
+  }
+
+  /* 步骤数字角标 */
+  .step-num {
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--text3);
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    transition: all 0.3s;
+  }
+
+  /* 标签文字 */
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--text3);
+    white-space: nowrap;
+    transition: color 0.3s;
+    text-align: center;
+  }
+
+  /* ══ 状态变体 ══ */
+
+  /* waiting — 默认暗淡 */
+  .step-node.waiting .step-icon-inner { color: rgba(255,255,255,0.2); }
+  .step-node.waiting .step-label   { color: rgba(255,255,255,0.2); opacity: 0.5; }
+
+  /* running — 脉冲发光 */
+  .step-node.running .step-ring {
+    border-color: var(--node-color);
+    box-shadow: 0 0 20px var(--node-glow), inset 0 0 12px var(--node-glow);
+  }
+  .step-node.running .step-ring::before { opacity: 0.35; animation-play-state: running; }
+  .step-node.running .step-ring::after  { opacity: 0.35; }
+  .step-node.running .step-icon-inner {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border-color: var(--node-color);
+    color: #fff;
+    animation: iconPulse 1.3s ease-in-out infinite;
+  }
+  .step-node.running .step-label { color: var(--node-color); }
+  .step-node.running .step-num {
+    background: var(--node-color); color: #fff; border-color: var(--node-color);
+    box-shadow: 0 0 8px var(--node-glow);
+  }
+  @keyframes iconPulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* done — 实心填充 */
+  .step-node.done .step-ring {
+    border-color: var(--node-color);
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent);
+    box-shadow: 0 0 14px var(--node-glow);
+  }
+  .step-node.done .step-ring::after { opacity: 0.18; }
+  .step-node.done .step-icon-inner {
+    background: linear-gradient(135deg, var(--node-color), color-mix(in srgb, var(--node-color) 70%, #000));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 0 10px var(--node-glow);
+  }
+  .step-node.done .step-label { color: var(--text2); }
+  .step-node.done .step-num {
+    background: var(--node-color); color: #fff; border-color: var(--node-color);
+  }
+
+  /* done 时打勾覆盖图标 */
+  .step-node.done .step-icon-inner::after {
+    content: '✓';
+    position: absolute;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .step-node.done .step-icon-inner > span { visibility: hidden; }
+
+  /* error */
+  .step-node.error .step-ring {
+    border-color: var(--red);
+    box-shadow: 0 0 14px rgba(245,88,88,0.35);
+  }
+  .step-node.error .step-icon-inner { color: var(--red); }
+  .step-node.error .step-label { color: var(--red); }
+
+  /* active/选中展开态 */
+  .step-node.selected .step-ring {
+    border-color: var(--node-color);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.04), 0 0 24px var(--node-glow);
+    transform: scale(1.08);
+  }
+  .step-node.selected.done .step-ring,
+  .step-node.selected.running .step-ring { transform: scale(1.1); }
+
+  /* hover（非 running）*/
+  .step-node:hover:not(.running) .step-ring {
+    border-color: rgba(255,255,255,0.2);
+    transform: scale(1.06);
+  }
+  .step-node:hover:not(.running) .step-icon-inner {
+    border-color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+  }
+  .step-node:hover:not(.running) .step-label { color: var(--text2); }
+
+  /* ══ 结果面板 ══ */
+  .result-panel-wrap {
+    min-height: 200px;
+    transition: all 0.35s ease;
+  }
+  .result-panel {
+    padding: 24px;
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(99,138,243,0.03) 0%, transparent 50%),
+      rgba(0,0,0,0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text2);
+    animation: panelRise 0.4s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes panelRise {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* 面板头部 */
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .panel-head-left { display: flex; align-items: center; gap: 10px; }
+  .panel-step-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .psi-1 { background:rgba(99,138,243,0.15); color:#8fa8ff; }
+  .psi-2 { background:rgba(245,166,35,0.13); color:#f5b84d; }
+  .psi-3 { background:rgba(168,85,247,0.13); color:#c084fc; }
+  .psi-4 { background:rgba(236,72,153,0.12); color:#f472b6; }
+  .psi-5 { background:rgba(7,193,96,0.12); color:#34d97a; }
+  .psi-6 { background:rgba(6,182,212,0.12); color:#22d3ee; }
+  .psi-7 { background:rgba(249,115,22,0.12); color:#fb923c; }
+
+  .panel-title {
+    font-size: 15.5px; font-weight: 700; color: var(--text);
+  }
+  .panel-status-badge {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .psb-done  { background: rgba(7,193,96,0.12); color: #34d97a; border: 1px solid rgba(7,193,96,0.2); }
+  .psb-error { background: rgba(245,88,88,0.1); color: #f55858; border: 1px solid rgba(245,88,88,0.2); }
+  .psb-wait  { background: rgba(255,255,255,0.04); color: var(--text3); border: 1px solid rgba(255,255,255,0.06); }
+
+  /* 面板内容区样式复用 */
+  .panel-empty {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100px; color: var(--text3); font-style: italic;
+  }
+  .analysis-field { margin-bottom: 14px; }
+  .analysis-field:last-child { margin-bottom: 0; }
+  .analysis-label {
+    font-size: 10.5px; font-weight: 700; color: var(--step-c1);
+    text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px;
+  }
+  .analysis-value { font-size: 13.5px; color: var(--text); line-height: 1.7; }
+  .article-body { padding: 4px 0; font-size: 14px; line-height: 1.9; color: var(--text); }
+  .article-body h2 { font-size: 17px; margin: 20px 0 8px; padding-left: 12px; border-left: 3px solid var(--accent); color: var(--text); font-weight: 600; }
+  .article-body h3 { font-size: 15px; margin: 14px 0 6px; color: var(--text); font-weight: 600; }
+  .article-body p  { margin: 8px 0; text-align: justify; }
+  .article-body strong { color: #ca5863; font-weight: 600; }
+  .title-result { font-size: 20px; font-weight: 700; color: var(--text); padding: 4px 0 12px; }
+  .title-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .preview-frame-wrap { width: 100%; height: 340px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
+  .preview-frame-wrap iframe { width: 100%; height: 100%; border: none; }
+
+  /* ══ 其他 UI ══ */
+  .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: flex-end; }
+  .log-section { border-radius: var(--radius); overflow: hidden; margin-top: 16px; }
+  .input-section { margin-bottom: 20px; }
+  .url-row { display: flex; gap: 10px; align-items: flex-start; }
+
+  @media (max-width: 720px) {
+    .step-strip { padding: 20px 8px 6px; gap: 0; }
+    .step-node { max-width: 80px; padding: 4px 6px; }
+    .step-ring { width: 38px; height: 38px; }
+    .step-icon-inner { width: 26px; height: 26px; font-size: 13px; }
+    .step-num { width: 14px; height: 14px; font-size: 8px; top: -3px; right: -3px; }
+    .step-label { font-size: 9.5px; }
+    .track-rail { left: 42px; right: 42px; }
+    .particle-runner { left: 42px; width: 6px; height: 6px; }
+    .result-panel { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">📱</div><h1>墨锻工坊</h1><p>inkForge studio</p></div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">🔄 链接改写</div>
+      <div class="topbar-actions">
+        <!-- 公众号平台 -->
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()"><span>👤</span> 个人中心</div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()"><span>🚪</span> 退出登录</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- 输入 -->
+      <div class="card input-section">
+        <div class="form-group form-full" style="margin-bottom:12px;">
+          <label class="form-label">文章链接 <span style="color:var(--text3);font-weight:400;margin-left:4px;">可留空，填写内容后优先使用内容</span></label>
+          <input class="form-input" id="url-input" placeholder="粘贴要改写的文章链接（可选）..." style="flex:1;" />
+        </div>
+        <div class="form-group form-full" style="margin-bottom:12px;">
+          <label class="form-label">文章内容 <span style="color:var(--text3);font-weight:400;margin-left:4px;">可选，优先于链接</span></label>
+          <textarea class="form-textarea" id="content-input" rows="8" placeholder="直接粘贴文章内容，系统将以此内容进行改写。留空则使用上方链接抓取内容。"></textarea>
+        </div>
+        <div class="form-group form-full" style="margin-bottom:0;">
+          <label class="form-label">额外要求<span style="color:var(--text3);font-weight:400;margin-left:4px;">可选</span></label>
+          <textarea class="form-textarea" id="extra-input" placeholder="例如：「侧重技术细节」「幽默风格」「字数3000以上」等"></textarea>
+        </div>
+        <div style="margin-top:14px;text-align:right;">
+          <button class="btn btn-primary btn-lg" id="btn-start" onclick="startRewrite()">▶ 启动流水线</button>
+        </div>
+      </div>
+
+      <!-- ═══ 科技感步骤条 ═══ -->
+      <div class="card step-strip" id="step-strip">
+
+        <!-- 底部连接线 + 进度填充 -->
+        <div class="track-rail"><div class="track-fill" id="track-fill"></div></div>
+        <!-- 流光粒子 -->
+        <div class="particle-runner" id="particle"></div>
+
+        <!-- N1 抓取 -->
+        <div class="step-node sn-1 waiting" id="sn1" data-s="1" onclick="selectStep(1)">
+          <div class="step-ring">
+            <div class="step-icon-inner"><span>🌐</span></div>
+            <div class="step-num">1</div>
+          </div>
+          <div class="step-label">解析内容</div>
+        </div>
+
+        <!-- N2 分析 -->
+        <div class="step-node sn-2 waiting" id="sn2" data-s="2" onclick="selectStep(2)">
+          <div class="step-ring">
+            <div class="step-icon-inner"><span>🧠</span></div>
+            <div class="step-num">2</div>
+          </div>
+          <div class="step-label">观点提取</div>
+        </div>
+
+        <!-- N3 仿写 -->
+        <div class="step-node sn-3 waiting" id="sn3" data-s="3" onclick="selectStep(3)">
+          <div class="step-ring">
+            <div class="step-icon-inner"><span>⚡</span></div>
+            <div class="step-num">3</div>
+          </div>
+          <div class="step-label">AI 仿写</div>
+        </div>
+
+        <!-- N4 标题 -->
+        <div class="step-node sn-4 waiting" id="sn4" data-s="4" onclick="selectStep(4)">
+          <div class="step-ring">
+            <div class="step-icon-inner"><span>💎</span></div>
+            <div class="step-num">4</div>
+          </div>
+          <div class="step-label">标题生成</div>
+        </div>
+
+        <!-- N5 排版 -->
+        <div class="step-node sn-5 waiting" id="sn5" data-s="5" onclick="selectStep(5)">
+          <div class="step-ring">
+            <div class="step-icon-inner"><span>🎨</span></div>
+            <div class="step-num">5</div>
+          </div>
+          <div class="step-label">排版输出</div>
+        </div>
+
+        <!-- N6 封面 -->
+        <div class="step-node sn-6 waiting" id="sn6" data-s="6" onclick="selectStep(6)">
+          <div class="step-ring">
+            <div class="step-icon-inner"><span>🖼️</span></div>
+            <div class="step-num">6</div>
+          </div>
+          <div class="step-label">生成封面</div>
+        </div>
+
+        <!-- N7 推送 -->
+        <div class="step-node sn-7 waiting" id="sn7" data-s="7" onclick="selectStep(7)">
+          <div class="step-ring">
+            <div class="step-icon-inner"><span>🚀</span></div>
+            <div class="step-num">7</div>
+          </div>
+          <div class="step-label">推送草稿</div>
+        </div>
+
+      </div><!-- /.step-strip -->
+
+      <!-- ═══ 结果面板区域 ═══ -->
+      <div class="result-panel-wrap" id="result-area">
+        <div class="result-panel" id="result-panel">
+          <div class="panel-empty">👆 点击上方步骤节点查看详情</div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="action-bar" id="action-bar" style="display:none;">
+        <button class="btn btn-secondary" onclick="copyArticle()">📋 复制 MD</button>
+        <button class="btn btn-secondary" onclick="copyHtml()">🌐 复制 HTML</button>
+        <button class="btn btn-secondary" onclick="previewWechat()">👀 预览</button>
+        <button class="btn btn-primary" onclick="pushDraft()">🚀 推送为草稿</button>
+      </div>
+
+      <!-- 日志 -->
+      <div class="card log-section">
+        <div class="card-title" style="margin-bottom:10px;">📋 运行日志</div>
+        <div class="log-terminal" id="log-box" style="max-height:150px;">等待操作...</div>
+      </div>
+
+    </div><!-- /.content -->
+  </main><!-- /.main -->
+</div><!-- /.layout -->
+
+<script src="/common.js"></script>
+<script>
+// ═══ 全局状态 ═══
+var rwState = {
+  running: false, currentSSE: null, finalResult: null,
+  stepResults: {}, activeStep: 0, selectedStep: null,
+};
+const TOTAL_STEPS = 7;
+
+// ═══ 步骤节点状态控制 ═══
+function setStepStatus(stepNum, status) {
+  var node = document.getElementById('sn' + stepNum);
+  if (!node) return;
+  node.classList.remove('waiting', 'running', 'done', 'error', 'selected');
+  node.classList.add(status);
+  updateTrack();
+}
+
+function selectStep(stepNum, forceRefresh) {
+  // 切换选中态
+  var oldSel = rwState.selectedStep;
+  // 如果已选中同一步骤且不强制刷新（用户手动点击），则跳过
+  if (oldSel === stepNum && !forceRefresh) return;
+
+  rwState.selectedStep = stepNum;
+
+  // 更新节点 selected 态
+  for (var i = 1; i <= TOTAL_STEPS; i++) {
+    document.getElementById('sn' + i).classList.remove('selected');
+  }
+  document.getElementById('sn' + stepNum).classList.add('selected');
+
+  // 渲染结果面板
+  renderResultPanel(stepNum);
+}
+
+function renderResultPanel(stepNum) {
+  var panel = document.getElementById('result-panel');
+  if (!panel) return;
+
+  // 检查是否有该步结果
+  var r = rwState.stepResults[stepNum];
+
+  // 构建面板头部
+  var icons = ['','🌐','🧠','⚡','💎','🎨','🖼️','🚀'];
+  var names = ['','解析原文内容','AI 观点提取','AI 文章仿写','AI 标题生成','Markdown → HTML','生成封面图','推送为草稿'];
+  var iconEl = '<div class="panel-step-icon psi-' + stepNum + '">' + (icons[stepNum] || '') + '</div>';
+
+  if (!r) {
+    var node = document.getElementById('sn' + stepNum);
+    var isRunning = node && node.classList.contains('running');
+    if (isRunning) {
+      // 当前步骤正在执行中 → 显示友好的执行提示
+      var runningHints = ['','⏳ 正在解析文章内容，请稍候...','⏳ 正在提取核心观点，请稍候...','⏳ AI 正在仿写文章，请稍候...','⏳ 正在生成爆款标题，请稍候...','⏳ 正在排版文章，请稍候...','⏳ 正在生成封面图，请稍候...','⏳ 正在推送草稿，请稍候...'];
+      panel.innerHTML = '<div class="panel-head"><div class="panel-head-left">' + iconEl
+        + '<div class="panel-title">' + (names[stepNum] || '') + '</div></div>'
+        + '<span class="panel-status-badge" style="background:rgba(99,138,243,0.12);color:#8fa8ff;border:1px solid rgba(99,138,243,0.2);">执行中</span>'
+        + '</div><div class="panel-empty">' + (runningHints[stepNum] || '⏳ 执行中...') + '</div>';
+    } else {
+      // 未开始 → 显示空态
+      panel.innerHTML = '<div class="panel-head"><div class="panel-head-left">' + iconEl
+        + '<div class="panel-title">' + (names[stepNum] || '') + '</div></div>'
+        + '<span class="panel-status-badge psb-wait">等待执行</span>'
+        + '</div><div class="panel-empty">该步骤尚未执行，启动流水线后可在此查看结果</div>';
+    }
+    return;
+  }
+
+  // 有结果 → 根据 stepNum 渲染不同内容
+  var statusBadge = r.error ? '<span class="panel-status-badge psb-error">出错</span>' : '<span class="panel-status-badge psb-done">已完成</span>';
+
+  var headHtml = '<div class="panel-head"><div class="panel-head-left">' + iconEl
+    + '<div class="panel-title">' + (names[stepNum] || '') + '</div></div>' + statusBadge + '</div>';
+
+  var bodyHtml = '';
+  switch (stepNum) {
+    case 1:
+      bodyHtml += r.original_title ? '<div class="title-result">' + escHtml(r.original_title) + '</div>' : '';
+      bodyHtml += r.content_length ? '<div class="panel-meta" style="font-size:12.5px;color:var(--text3);margin-bottom:10px;">共提取 ' + r.content_length + ' 字</div>' : '';
+      bodyHtml += r.content_preview ? '<div style="font-size:13.5px;line-height:1.8;color:var(--text2);max-height:280px;overflow-y:auto;padding:10px;background:rgba(0,0,0,0.15);border-radius:8px;">' + escHtml(r.content_preview) + '</div>' : '';
+      break;
+    case 2:
+      if (r.style) bodyHtml += '<div class="analysis-field"><div class="analysis-label">写作风格</div><div class="analysis-value">' + escHtml(r.style) + '</div></div>';
+      if (r.summary) bodyHtml += '<div class="analysis-field"><div class="analysis-label">内容摘要</div><div class="analysis-value">' + escHtml(r.summary) + '</div></div>';
+      if (r.core_viewpoint) bodyHtml += '<div class="analysis-field"><div class="analysis-label">核心观点</div><div class="analysis-value">' + escHtml(r.core_viewpoint) + '</div></div>';
+      break;
+    case 3:
+      if (r.word_count) bodyHtml += '<div style="font-size:12.5px;color:var(--text3);margin-bottom:12px;">共 ' + r.word_count + ' 字</div>';
+      var ah = r.article_html || mdToSimpleHtml(r.article_body || '');
+      if (!ah) ah = '<div style="color:var(--text)">已生成文章</div>';
+      bodyHtml += '<div class="article-body">' + ah + '</div>';
+      if (r.article_body) {
+        bodyHtml += '<div class="title-actions" style="margin-top:14px;">';
+        bodyHtml += '<button class="btn btn-sm btn-secondary" onclick="copyText(rwState.stepResults[3].article_body)">📋 复制全文</button>';
+        bodyHtml += '</div>';
+      }
+      if (r.article_body && !rwState.finalResult) rwState.finalResult = {};
+      if (r.article_body && rwState.finalResult) rwState.finalResult.article_body = r.article_body;
+      break;
+    case 4:
+      var t = r.title || r.generated_title || '';
+      bodyHtml += '<div class="title-result">' + escHtml(t) + '</div>';
+      bodyHtml += '<div class="title-actions">';
+      bodyHtml += '<button class="btn btn-sm btn-secondary" onclick="copyText(\'' + t.replace(/'/g,"\\'") + '\')">📋 复制标题</button>';
+      bodyHtml += '</div>';
+      if (t) { if (!rwState.finalResult) rwState.finalResult = {}; rwState.finalResult.title = t; }
+      break;
+    case 5:
+      var wh = r.wechat_html || r.html || '';
+      if (wh) {
+        bodyHtml += '<div class="preview-frame-wrap" style="height:480px;"><iframe sandbox="allow-same-origin" srcdoc="' + escAttr(wh) + '"></iframe></div>';
+        bodyHtml += '<div class="title-actions" style="margin-top:14px;">';
+        bodyHtml += '<button class="btn btn-sm btn-secondary" onclick="copyHtml()">📋 复制</button>';
+        bodyHtml += '<button class="btn btn-sm btn-secondary" onclick="previewWechat()">👁 新窗口预览</button>';
+        bodyHtml += '</div>';
+        if (!rwState.finalResult) rwState.finalResult = {};
+        rwState.finalResult.wechat_html = wh;
+      } else {
+        bodyHtml += '<div class="panel-empty">排版完成</div>';
+      }
+      break;
+    case 6:
+      if (r.cover_url) {
+        bodyHtml += '<div style="padding:10px 0;">';
+        bodyHtml += '<img src="' + escAttr(r.cover_url) + '" style="max-width:100%;max-height:300px;border-radius:8px;border:1px solid var(--border);" />';
+        bodyHtml += '</div>';
+        bodyHtml += '<div class="title-actions" style="margin-top:14px;">';
+        bodyHtml += '<a href="' + escAttr(r.cover_url) + '" target="_blank" class="btn btn-sm btn-secondary">🔗 查看原图</a>';
+        bodyHtml += '<button class="btn btn-sm btn-secondary" onclick="window.location.href=\'/cover_maker.html\'">🎨 前往封面制作</button>';
+        bodyHtml += '</div>';
+        if (rwState.finalResult) rwState.finalResult.cover_url = r.cover_url;
+      } else if (r.cover_error) {
+        bodyHtml += '<div class="panel-empty" style="color:var(--text3);">⚠️ 封面生成失败：' + escHtml(r.cover_error) + '</div>';
+        bodyHtml += '<div class="title-actions" style="margin-top:14px;">';
+        bodyHtml += '<button class="btn btn-sm btn-secondary" onclick="window.location.href=\'/cover_maker.html\'">🎨 手动制作封面</button>';
+        bodyHtml += '</div>';
+      } else {
+        bodyHtml += '<div class="panel-empty">封面生成完成</div>';
+      }
+      break;
+    case 7:
+      if (r.draft_status === 'pushed') {
+        bodyHtml += '<div style="padding:10px 0;font-size:14px;">';
+        bodyHtml += '<span style="color:#34d97a;font-size:24px;">✅</span> 草稿已成功推送到微信公众号后台！';
+        if (r.media_id) bodyHtml += '<div style="font-size:12px;color:var(--text3);margin-top:6px;">Media ID: ' + escHtml(r.media_id) + '</div>';
+        bodyHtml += '</div>';
+      } else if (r.draft_status === 'failed') {
+        bodyHtml += '<div style="padding:10px 0;font-size:14px;">';
+        bodyHtml += '<span style="color:#f55858;font-size:24px;">❌</span> 推送失败：' + escHtml(r.draft_error || '未知错误');
+        bodyHtml += '</div>';
+        bodyHtml += '<div class="title-actions" style="margin-top:14px;">';
+        bodyHtml += '<button class="btn btn-sm btn-primary" onclick="doPushAction()">🔄 重试推送</button>';
+        bodyHtml += '</div>';
+      } else {
+        bodyHtml += '<div class="panel-empty" style="color:var(--text3);">⚠️ 推送跳过：' + escHtml(r.draft_error || '未配置公众号') + '</div>';
+        bodyHtml += '<div class="title-actions" style="margin-top:14px;">';
+        bodyHtml += '<button class="btn btn-sm btn-secondary" onclick="window.location.href=\'/config.html\'">⚙️ 前往配置公众号</button>';
+        bodyHtml += '</div>';
+      }
+      break;
+  }
+
+  panel.innerHTML = headHtml + (bodyHtml || '<div class="panel-empty">暂无内容</div>');
+
+  // 动画刷新
+  panel.style.animation = 'none';
+  panel.offsetHeight; /* reflow */
+  panel.style.animation = 'panelRise 0.4s cubic-bezier(.22,1,.36,1)';
+}
+
+// ═══ 底部进度线控制 ═══
+function updateTrack() {
+  var doneCount = 0;
+  for (var i = 1; i <= TOTAL_STEPS; i++) {
+    var n = document.getElementById('sn' + i);
+    if (!n) continue;
+    if (n.classList.contains('done')) doneCount++;
+    else if (n.classList.contains('running')) { doneCount += 0.5; break; }
+  }
+  var pct = Math.round((doneCount / TOTAL_STEPS) * 100);
+  var f = document.getElementById('track-fill');
+  if (f) f.style.width = pct + '%';
+}
+
+// ═══ 日志 ═══
+function appendLog(msg, level) {
+  var b = document.getElementById('log-box');
+  if (!b) return;
+  var fc = b.firstChild;
+  if (fc && fc.textContent === '等待操作...') b.innerHTML = '';
+
+  var d = document.createElement('div');
+  d.className = 'log-entry log-' + (level || 'info');
+  d.textContent = msg.startsWith('{') ? '' : msg;
+  if (msg && !msg.startsWith('{')) b.appendChild(d);
+  b.scrollTop = b.scrollHeight;
+}
+
+// ═══ 核心：启动改写 ═══
+function startRewrite() {
+  var urlInput = document.getElementById('url-input');
+  var contentInput = document.getElementById('content-input');
+  var extraInput = document.getElementById('extra-input');
+  var url = urlInput.value.trim();
+  var content = contentInput.value.trim();
+
+  if (!url && !content) { toast('请输入文章链接或文章内容', 'error'); contentInput.focus(); return; }
+  if (rwState.running) { toast('流水线运行中', 'warn'); return; }
+
+  rwState.running = true; rwState.finalResult = null;
+  rwState.stepResults = {}; rwState.activeStep = 0; rwState.selectedStep = null;
+  rwState.useContent = !!content; // 标记是否使用内容模式
+
+  var btn = document.getElementById('btn-start');
+  btn.textContent = '运行中...'; btn.disabled = true;
+  document.getElementById('action-bar').style.display = 'none';
+
+  var ph = ['正在抓取...','AI 分析中...','创作中，请稍候...','生成标题...','排版处理中...','生成封面上传...','推送到公众号...'];
+  for (var i = 1; i <= TOTAL_STEPS; i++) {
+    setStepStatus(i, 'waiting');
+    rwState.stepResults[i] = null;
+  }
+
+  // 重置结果面板
+  document.getElementById('result-panel').innerHTML = '<div class="panel-empty">⏳ 流水线运行中...</div>';
+
+  document.getElementById('log-box').innerHTML = '';
+
+  var taskId = 'rw_' + Date.now();
+  var extra = extraInput.value.trim();
+
+  // 构造请求体：有内容优先传 content，否则传 url
+  var body = {task_id: taskId, extra_instructions: extra};
+  if (content) {
+    body.content = content;
+    body.url = url; // url 作为参考来源，可选
+  } else {
+    body.url = url;
+  }
+
+  fetch('/api/rewrite_v2', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body),
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if (!d.ok) throw new Error(d.error||'请求失败');
+    appendLog('✅ 流水线已启动 ('+taskId+')', 'info');
+    subscribeSSE(taskId);
+  })
+  .catch(function(e){
+    toast('启动失败: '+e.message,'error');
+    appendLog('❌ '+e.message,'error');
+    resetUI();
+  });
+}
+
+// ═══ SSE 订阅 ═══
+function subscribeSSE(taskId) {
+  var es = new EventSource('/api/logs/'+taskId);
+
+  es.onmessage = function(e) {
+    var d;
+    try { d = JSON.parse(e.data); } catch(err){return;}
+    if (d.level === 'ping') return;
+
+    if (d.level === 'done') {
+      es.close();
+      appendLog('🎉 流水线全部完成！','step');
+
+      resetUI();
+      document.getElementById('action-bar').style.display='flex';
+
+      // 自动选到最后有结果的步骤
+      var ld = TOTAL_STEPS;
+      while(ld>=1 && !rwState.stepResults[ld]) ld--;
+      if (ld>=1) selectStep(ld);
+      return;
+    }
+
+    // 步骤开始执行 → 标记 running 状态
+    if (d.level === 'running') {
+      var runningStep;
+      try { runningStep = JSON.parse(d.msg); } catch(err){return; }
+      if (runningStep.step) {
+        setStepStatus(runningStep.step, 'running');
+        rwState.activeStep = runningStep.step;
+        // 自动选中正在执行的步骤
+        selectStep(runningStep.step);
+      }
+      return;
+    }
+
+    if (d.level !== 'result') { appendLog(d.msg, d.level); return; }
+
+    var res;
+    try { res = JSON.parse(d.msg); } catch(err){return; }
+    handleStepResult(res);
+  };
+
+  es.onerror = function(){es.close();appendLog('⚠️ 连接断开','error');resetUI();};
+  rwState.currentSSE = es;
+}
+
+// ═══ 各步骤渲染 ═══
+function handleStepResult(result) {
+  var s = result.step;
+  if (!s) {
+    if (result.title || result.article_body) rwState.finalResult = result;
+    return;
+  }
+  rwState.stepResults[s] = result;
+  switch(s){
+    case 1: handleStep1(result); break;
+    case 2: handleStep2(result); break;
+    case 3: handleStep3(result); break;
+    case 4: handleStep4(result); break;
+    case 5: handleStep5(result); break;
+    case 6: handleStep6(result); break;
+    case 7: handleStep7(result); break;
+  }
+}
+
+function handleStep1(r) {
+  setStepStatus(1,'done');
+  appendLog('[1/7] 解析完成：'+(r.content_length||'?')+' 字','step');
+  // 步骤完成后强制刷新面板（forceRefresh=true），否则选中同一步时不会更新
+  if (!rwState.selectedStep || rwState.selectedStep === 1) selectStep(1, true);
+}
+
+function handleStep2(r) {
+  setStepStatus(2,'done');
+  appendLog('[2/7] 观点提取完成','step');
+  if (!rwState.selectedStep || rwState.selectedStep === 2) selectStep(2, true);
+}
+
+function handleStep3(r) {
+  setStepStatus(3,'done');
+  appendLog('[3/7] 仿写完成','step');
+  if (!rwState.selectedStep || rwState.selectedStep === 3) selectStep(3, true);
+}
+
+function handleStep4(r) {
+  setStepStatus(4,'done');
+  var t = r.title||r.generated_title||'';
+  appendLog('[4/7] 标题：'+t,'step');
+  if (!rwState.selectedStep || rwState.selectedStep === 4) selectStep(4, true);
+}
+
+function handleStep5(r) {
+  setStepStatus(5,'done');
+  appendLog('[5/7] 排版完成','step');
+  if (!rwState.selectedStep || rwState.selectedStep === 5) selectStep(5, true);
+}
+
+function handleStep6(r) {
+  setStepStatus(6,'done');
+  var logMsg = r.cover_url ? '[6/7] 封面生成成功' : '[6/7] 封面生成跳过';
+  appendLog(logMsg, 'step');
+  if (!rwState.selectedStep || rwState.selectedStep === 6) selectStep(6, true);
+}
+
+function handleStep7(r) {
+  setStepStatus(7,'done');
+  var logMsg = r.draft_status === 'pushed' ? '[7/7] 草稿推送成功' : '[7/7] 草稿推送完成';
+  appendLog(logMsg, 'step');
+  if (!rwState.selectedStep || rwState.selectedStep === 7) selectStep(7, true);
+}
+
+function doPushAction() {
+  pushDraft();
+}
+
+// ═══ 操作功能 ═══
+function copyArticle(){
+  if(!rwState.finalResult||!rwState.finalResult.article_body){toast('暂无MD内容','error');return;}
+  copyText(rwState.finalResult.article_body);
+}
+function copyHtml(){
+  if(!rwState.finalResult||!rwState.finalResult.wechat_html){toast('暂无HTML','error');return;}
+  copyText(rwState.finalResult.wechat_html);
+}
+function previewWechat(){
+  if(!rwState.finalResult||!rwState.finalResult.wechat_html){toast('暂无预览','error');return;}
+  var w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset=utf-8><title>预览</title></head><body style=max-width:640px;margin:0 auto;padding:20px;background:#fff>'+rwState.finalResult.wechat_html+'</body></html>');
+  w.document.close();
+}
+function pushDraft(){
+  if(!rwState.finalResult){toast('没有可推送的内容','error');return;}
+  toast('推送草稿功能开发中...','info');
+}
+function copyText(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){toast('已复制','success');}).catch(function(){fallbackCopy(text);});
+  }else{fallbackCopy(text);}
+}
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');ta.value=text;
+  ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);
+  ta.select();document.execCommand('copy');document.body.removeChild(ta);
+  toast('已复制','success');
+}
+
+// ═══ 工具函数 ═══
+function escHtml(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function escAttr(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function mdToSimpleHtml(md){
+  if(!md)return'';var h=escHtml(md);
+  h=h.replace(/^### (.+)$/gm,'<h3>$1</h3>');h=h.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  h=h.replace(/^# (.+)$/gm,'<h1>$1</h1>');h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\n\n/g,'</p><p>');h='<p>'+h+'</p>';h=h.replace(/<p><\/p>/g,'');
+  h=h.replace(/<p>(<h[123]>)/g,'$1');h=h.replace(/(<\/h[123]>)<\/p>/g,'$1');return h;
+}
+function resetUI(){
+  rwState.running=false;rwState.activeStep=0;
+  var btn=document.getElementById('btn-start');btn.textContent='▶ 启动流水线';btn.disabled=false;
+}
+
+// ═══ 初始化 ═══
+document.addEventListener('DOMContentLoaded',function(){
+  var cp=window.location.pathname;
+  document.querySelectorAll('.nav-item').forEach(function(it){
+    if(it.getAttribute('href')===cp)it.classList.add('active');else it.classList.remove('active');
+  });
+  loadCurrentUser();
+  document.getElementById('url-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('content-input').focus();}});
+});
+</script>
+
+<div class="toast" id="toast"></div>
+
+</body>
+</html>

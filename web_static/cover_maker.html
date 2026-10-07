@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>封面制作 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<link rel="stylesheet" href="/cover_maker.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>InkForge Studio</p>
+    </div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">🎨 封面制作</div>
+      <div class="topbar-actions">
+        <!-- 公众号平台 -->
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content cover-maker-content">
+      <!-- 输入区 -->
+      <div class="cover-input-section">
+        <div class="cover-form">
+          <div class="form-group">
+            <label>文章标题</label>
+            <input type="text" id="cover-title" class="form-input" placeholder="输入文章标题，AI 将根据标题生成匹配的封面" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label>内容摘要 <span class="optional">（可选）</span></label>
+            <textarea id="cover-content" class="form-textarea" rows="3" placeholder="输入文章内容摘要，帮助 AI 更精准地匹配封面风格"></textarea>
+          </div>
+          <div class="form-group">
+            <label>自定义描述 <span class="optional">（可选，覆盖风格预设）</span></label>
+            <textarea id="cover-custom-prompt" class="form-textarea" rows="2" placeholder="用自然语言描述你想要的封面画面，如：一只橘猫趴在笔记本电脑上睡觉"></textarea>
+          </div>
+
+          <!-- 风格选择 -->
+          <div class="form-group">
+            <label>封面风格</label>
+            <div class="style-grid" id="style-grid">
+              <!-- JS 动态渲染 -->
+            </div>
+          </div>
+
+          <!-- 尺寸选择 -->
+          <div class="form-group">
+            <label>封面尺寸</label>
+            <div class="size-options">
+              <button class="size-btn active" data-size="wide" onclick="selectSize(this)">
+                <span class="size-preview size-wide"></span>
+                <span class="size-label">横版 2.35:1</span>
+              </button>
+              <button class="size-btn" data-size="square" onclick="selectSize(this)">
+                <span class="size-preview size-square"></span>
+                <span class="size-label">正方 1:1</span>
+              </button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-generate" id="generate-btn" onclick="generateCover()">
+            🎨 生成封面
+          </button>
+        </div>
+      </div>
+
+      <!-- 预览区 -->
+      <div class="cover-preview-section">
+        <div class="preview-empty" id="preview-empty">
+          <div class="empty-icon">🖼️</div>
+          <p>输入标题选择风格后点击生成</p>
+        </div>
+        <div class="preview-loading" id="preview-loading" style="display:none;">
+          <div class="loading-spinner"></div>
+          <p>AI 正在精心绘制封面，通常需要 15-30 秒...</p>
+          <p class="loading-tip">好的封面值得等待 ✨</p>
+        </div>
+        <div class="preview-result" id="preview-result" style="display:none;">
+          <div class="preview-image-wrap">
+            <img id="preview-image" src="" alt="生成的封面">
+          </div>
+          <div class="preview-actions">
+            <button class="btn btn-primary" onclick="downloadCover()">
+              ⬇️ 下载封面
+            </button>
+            <button class="btn btn-accent" onclick="collectToLibrary()">
+              📁 收藏到素材库
+            </button>
+            <button class="btn" onclick="regenerateCover()">
+              🔄 重新生成
+            </button>
+          </div>
+          <div class="prompt-info" id="prompt-info" style="display:none;">
+            <div class="prompt-toggle" onclick="togglePrompt()">
+              <span>查看 AI Prompt</span>
+              <span class="prompt-arrow" id="prompt-arrow">▶</span>
+            </div>
+            <div class="prompt-content" id="prompt-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 历史记录 -->
+    <div class="cover-history-section">
+      <div class="history-header">
+        <h3>📋 生成历史</h3>
+        <button class="btn btn-sm" onclick="loadHistory()">刷新</button>
+      </div>
+      <div class="history-grid" id="history-grid">
+        <!-- JS 动态渲染 -->
+      </div>
+      <div class="history-empty" id="history-empty" style="display:none;">
+        <p>暂无生成记录</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/cover_maker.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+/opt/anaconda3/lib/python3.13/site-packages/cozepy/auth/__init__.py:7: AuthlibDeprecationWarning: authlib.jose module is deprecated, please use joserfc instead.
+It will be compatible before version 2.0.0.
+  from authlib.jose import jwt  # type: ignore
+ALL VERIFICATION CHECKS PASSED

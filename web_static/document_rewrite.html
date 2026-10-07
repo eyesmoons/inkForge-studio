@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文档改写 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<link rel="stylesheet" href="/agent.css">
+<style>
+  .dr-container { max-width: 900px; margin: 0 auto; padding: 24px; }
+  .dr-steps { display: flex; gap: 12px; margin-bottom: 24px; }
+  .dr-step {
+    flex: 1; padding: 12px; text-align: center; border-radius: 8px;
+    background: var(--bg2); color: var(--text2); font-size: 13px;
+  }
+  .dr-step.active { background: var(--accent); color: #fff; }
+  .dr-drop-zone {
+    border: 2px dashed var(--border); border-radius: 12px;
+    padding: 48px 24px; text-align: center; cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .dr-drop-zone:hover, .dr-drop-zone.dragover { border-color: var(--accent); }
+  .dr-drop-zone p { margin: 8px 0; font-size: 16px; }
+  .dr-hint { font-size: 13px; color: var(--text2); }
+  .dr-file-info { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  .dr-textarea {
+    width: 100%; min-height: 300px; padding: 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; line-height: 1.6; resize: vertical;
+    background: var(--bg); color: var(--text);
+  }
+  .dr-options { display: flex; gap: 16px; margin: 16px 0; align-items: center; }
+  .dr-options select, .dr-options input[type="number"] {
+    padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--bg); color: var(--text);
+  }
+  .dr-options input[type="text"] {
+    flex: 1; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--bg); color: var(--text);
+    min-width: 200px;
+  }
+  .dr-log {
+    background: var(--bg2); border-radius: 8px; padding: 16px;
+    max-height: 300px; overflow-y: auto; font-size: 13px;
+    line-height: 1.6; font-family: monospace;
+  }
+  .dr-log .log-line { margin: 2px 0; }
+  .dr-log .log-info { color: var(--text2); }
+  .dr-log .log-error { color: var(--danger); }
+  .dr-log .log-done { color: var(--success); font-weight: bold; }
+  .dr-section { margin-bottom: 24px; }
+  .dr-section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  .dr-hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>inkForge studio</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">📄 文档改写</div>
+      <div class="topbar-actions">
+        <select class="form-select" id="account-selector" onchange="onAccountChange()" style="margin-right:12px;min-width:180px;">
+          <option value="">-- 加载中 --</option>
+        </select>
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+      </div>
+    </div>
+
+    <div class="dr-container">
+      <!-- 步骤指示器 -->
+      <div class="dr-steps">
+        <div class="dr-step active" data-step="1">① 上传文档</div>
+        <div class="dr-step" data-step="2">② 预览确认</div>
+        <div class="dr-step" data-step="3">③ 改写生成</div>
+        <div class="dr-step" data-step="4">④ 预览发布</div>
+      </div>
+
+      <!-- 步骤 1: 上传 -->
+      <div id="dr-upload-section" class="dr-section">
+        <div class="dr-section-title">上传文档</div>
+        <div id="dr-drop-zone" class="dr-drop-zone">
+          <p>📎 点击或拖拽文件到此处</p>
+          <p class="dr-hint">支持 .docx .pdf .md .txt，最大 10MB</p>
+          <input type="file" id="dr-file-input" accept=".docx,.pdf,.md,.txt" hidden>
+        </div>
+        <div id="dr-file-info" class="dr-file-info dr-hidden">
+          <span id="dr-filename"></span>
+          <button onclick="parseDocument()" class="btn btn-primary">解析文档</button>
+          <button onclick="resetUpload()" class="btn">重新选择</button>
+        </div>
+      </div>
+
+      <!-- 步骤 2: 预览编辑 -->
+      <div id="dr-preview-section" class="dr-section dr-hidden">
+        <div class="dr-section-title">预览与编辑（可修改内容后改写）</div>
+        <textarea id="dr-preview-textarea" class="dr-textarea" placeholder="解析后的文档内容将显示在此处，您可以编辑修改..."></textarea>
+        <div class="dr-options">
+          <label>文章风格：</label>
+          <select id="dr-style">
+            <option value="观点评论">观点评论</option>
+            <option value="深度科普">深度科普</option>
+            <option value="故事叙事">故事叙事</option>
+            <option value="新闻快讯">新闻快讯</option>
+            <option value="情感共鸣">情感共鸣</option>
+          </select>
+          <label>目标字数：</label>
+          <input type="number" id="dr-wordcount" value="2000" min="500" max="10000" step="100">
+          <label>结尾词：</label>
+          <input type="text" id="dr-ending" placeholder="留空则自动生成结尾" oninput="updateEndingStatus()">
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--text2);white-space:nowrap;cursor:pointer;">
+            <input type="checkbox" id="dr-no-ending" style="margin:0;" onchange="updateEndingStatus()">
+            不加结尾词
+          </label>
+          <span id="dr-ending-status" style="font-size:12px;color:var(--accent);margin-left:auto;"></span>
+        </div>
+        </div>
+        <button onclick="startRewrite()" class="btn btn-primary">✨ 开始改写</button>
+      </div>
+
+      <!-- 步骤 3: 日志 -->
+      <div id="dr-log-section" class="dr-section dr-hidden">
+        <div class="dr-section-title">改写进度</div>
+        <div id="dr-log" class="dr-log">
+          <div class="log-line log-info">等待开始...</div>
+        </div>
+      </div>
+      <!-- 步骤 4: 结果预览 -->
+      <div id="dr-result-section" class="dr-section dr-hidden">
+        <div class="dr-section-title">改写结果（可复制或编辑）</div>
+        <textarea id="dr-result-textarea" class="dr-textarea" readonly></textarea>
+        <div class="dr-options">
+          <button onclick="copyResult()" class="btn btn-primary">📋 复制全文</button>
+          <button onclick="downloadResult()" class="btn">⬇️ 下载 Markdown</button>
+          <button onclick="resetUpload()" class="btn">🔄 再来一篇</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/document_rewrite.js">
+function copyResult() {
+  var ta = document.getElementById('dr-result-textarea');
+  ta.select();
+  document.execCommand('copy');
+  toast('已复制到剪贴板', 'success');
+}
+
+function downloadResult() {
+  var content = document.getElementById('dr-result-textarea').value;
+  var blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'rewritten_article.md';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

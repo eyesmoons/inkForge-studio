@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>定时任务 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>inkForge studio</p>
+    </div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">⏰ 定时任务</div>
+      <div class="topbar-actions">
+        <!-- 账号选择器 -->
+        <select class="form-select" id="account-selector" onchange="onAccountChange()" style="margin-right:12px;min-width:180px;">
+          <option value="">-- 加载中 --</option>
+        </select>
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- 公众号平台 -->
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 主手风琴容器 -->
+      <div class="main-accordion">
+
+        <!-- 定时任务列表（手风琴项） -->
+        <div class="main-accordion-item">
+          <div class="main-accordion-header" onclick="toggleMainAccordion('schedule-list-section')">
+            <div style="display:flex;align-items:center;gap:12px;flex:1;">
+              <div style="font-size:24px;">⏰</div>
+              <div class="card-title" style="margin:0;">定时任务列表</div>
+            </div>
+            <div class="main-accordion-icon" id="schedule-list-section-icon">▼</div>
+          </div>
+          <div class="main-accordion-content" id="schedule-list-section">
+            <div style="padding:16px;background:var(--bg2);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <button class="btn btn-primary" onclick="openScheduleModal()">➕ 新增任务</button>
+                <div style="color:var(--text2);font-size:13px;">
+                  每天在指定时间自动完成：选题 → AI写稿 → 推送到微信草稿箱，无需手动操作。
+                </div>
+              </div>
+              <div id="schedule-list">
+                <div style="text-align:center;color:var(--text2);padding:32px 0;font-size:13px;">
+                  加载中...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 实时日志（立即执行时显示） -->
+        <div class="card" id="sch-live-card" style="display:none;margin-top:16px;">
+          <div class="card-title">📡 执行日志</div>
+          <div class="log-box" id="sch-log-box" style="height:200px;"></div>
+        </div>
+
+        <!-- 历史运行记录（手风琴项） -->
+        <div class="main-accordion-item">
+          <div class="main-accordion-header" onclick="toggleMainAccordion('logs-section')">
+            <div style="display:flex;align-items:center;gap:12px;flex:1;">
+              <div style="font-size:24px;">📋</div>
+              <div class="card-title" style="margin:0;">历史运行记录</div>
+            </div>
+            <div class="main-accordion-icon" id="logs-section-icon">▼</div>
+          </div>
+          <div class="main-accordion-content" id="logs-section">
+            <div style="padding:16px;background:var(--bg2);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <button class="btn btn-sm btn-secondary" onclick="loadScheduleLogs()">🔄 刷新</button>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:12%;">开始时间</th>
+                  <th style="width:12%;">结束时间</th>
+                  <th style="width:8%;">定时</th>
+                  <th style="width:10%;">公众号</th>
+                  <th style="width:10%;">状态</th>
+                  <th style="width:12%;">耗时</th>
+                  <th style="width:26%;">执行结果</th>
+                  <th style="width:10%;text-align:center;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="sch-log-list">
+                <tr>
+                  <td colspan="8" style="text-align:center;color:var(--text2);padding:32px 0;font-size:13px;">
+                    暂无运行记录
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- 分页控件 -->
+          <div id="sch-log-pagination" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 0;">
+            <button class="btn btn-sm" id="sch-log-prev" onclick="changeScheduleLogPage(-1)" disabled>← 上一页</button>
+            <span id="sch-log-page-info" style="font-size:13px;color:var(--text2);">第 1 页 / 共 1 页</span>
+            <input type="hidden" id="sch-log-page" value="1">
+            <button class="btn btn-sm" id="sch-log-next" onclick="changeScheduleLogPage(1)" disabled>下一页 →</button>
+          </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+<!-- 定时任务弹框 -->
+<div class="modal-overlay" id="schedule-modal" style="display:none;">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3>⏰ 配置定时任务</h3>
+      <button class="btn-close" onclick="closeScheduleModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sch-task-id">
+
+      <!-- 账号选择 -->
+      <div class="form-group">
+        <label class="form-label">📱 公众号账号</label>
+        <select id="sch-account" class="form-select">
+        </select>
+      </div>
+
+      <!-- 时间选择 -->
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">🕐 小时</label>
+          <select id="sch-hour" class="form-select">
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">⏱ 分钟</label>
+          <select id="sch-minute" class="form-select">
+          </select>
+        </div>
+      </div>
+
+      <!-- 执行模式 -->
+      <div class="form-group">
+        <label class="form-label">🔧 执行模式</label>
+        <div style="display:flex;gap:12px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;margin:0;">
+            <input type="radio" name="execution-mode" value="serial" checked>
+            <span style="font-size:14px;color:var(--text1);">串行执行</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;margin:0;">
+            <input type="radio" name="execution-mode" value="parallel">
+            <span style="font-size:14px;color:var(--text1);">并行执行</span>
+          </label>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;padding:8px;background:var(--bg3);border-radius:6px;line-height:1.6;">
+          <strong>串行执行：</strong>多个任务依次执行，避免日志混乱，推荐使用<br>
+          <strong>并行执行：</strong>多个任务同时执行，速度快但可能有日志重叠风险
+        </div>
+      </div>
+
+      <!-- 启用开关 -->
+      <div class="form-group">
+        <label class="form-label">任务状态</label>
+        <div style="display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);">
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;margin:0;">
+            <div class="toggle-wrap">
+              <input type="checkbox" id="sch-enabled">
+              <span class="toggle-slider"></span>
+            </div>
+            <span style="font-size:14px;color:var(--text1);">启用此定时任务</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 提示信息 -->
+      <div class="tip" style="padding:12px;background:rgba(7,193,96,0.08);border-left:3px solid var(--accent);border-radius:4px;">
+        <strong>💡 使用说明：</strong>
+        <ul style="margin:8px 0 0 20px;padding:0;font-size:13px;">
+          <li>每天在设定时间自动执行：选题 → AI写稿 → 推送</li>
+          <li>建议设置为「仅推送草稿箱」，发布前可人工审核</li>
+          <li>可直接发布，但请确保文章质量无误</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeScheduleModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveScheduleFromModal()">💾 保存任务</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+<script src="/common.js"></script>
+<script>
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    if (item.getAttribute("href") === currentPage) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  // 默认展开定时任务列表
+  const scheduleListSection = document.getElementById('schedule-list-section');
+  const scheduleListIcon = document.getElementById('schedule-list-section-icon');
+  if (scheduleListSection) {
+    scheduleListSection.style.display = 'block';
+  }
+  if (scheduleListIcon) {
+    scheduleListIcon.style.transform = 'rotate(0deg)';
+  }
+
+  loadAccounts();
+  loadScheduleList();
+  loadScheduleLogs();
+  startSSE();
+});
+</script>
+
+</body>
+</html>

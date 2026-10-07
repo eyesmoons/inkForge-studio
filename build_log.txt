@@ -1,0 +1,136 @@
+90 INFO: PyInstaller: 6.19.0, contrib hooks: 2026.4
+91 INFO: Python: 3.14.3
+104 INFO: Platform: macOS-26.3.1-arm64-arm-64bit-Mach-O
+104 INFO: Python environment: /Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv
+131 INFO: Removing temporary files and cleaning cache in /Users/casey/Library/Application Support/pyinstaller
+133 INFO: Module search paths (PYTHONPATH):
+['/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python314.zip',
+ '/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14',
+ '/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload',
+ '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages',
+ '/Users/casey/WorkBuddy/20260325140058/wechat-publisher']
+265 INFO: Appending 'datas' from .spec
+271 INFO: checking Analysis
+271 INFO: Building Analysis because Analysis-00.toc is non existent
+271 INFO: Looking for Python shared library...
+275 INFO: Using Python shared library: /opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/Python
+275 INFO: Running Analysis Analysis-00.toc
+275 INFO: Target bytecode optimization level: 0
+275 INFO: Initializing module dependency graph...
+276 INFO: Initializing module graph hook caches...
+287 INFO: Analyzing modules for base_library.zip ...
+1211 INFO: Processing standard module hook 'hook-encodings.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+1500 INFO: Processing standard module hook 'hook-pickle.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+1805 INFO: Processing standard module hook 'hook-difflib.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+1816 INFO: Processing standard module hook 'hook-heapq.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+3913 INFO: Caching module dependency graph...
+3935 INFO: Analyzing /Users/casey/WorkBuddy/20260325140058/wechat-publisher/launcher.py
+4003 INFO: Processing standard module hook 'hook-sysconfig.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+4016 INFO: Processing standard module hook 'hook-_osx_support.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+4019 INFO: Processing standard module hook 'hook-_ctypes.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+4148 INFO: Processing standard module hook 'hook-urllib3.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+4245 INFO: Processing pre-safe-import-module hook 'hook-backports.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+4246 INFO: SetuptoolsInfo: initializing cached setuptools info...
+4595 INFO: Setuptools: 'backports' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.backports'!
+4602 INFO: Processing standard module hook 'hook-setuptools.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+4644 INFO: Processing standard module hook 'hook-platform.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+4673 INFO: Processing standard module hook 'hook-xml.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+4675 INFO: Processing pre-safe-import-module hook 'hook-distutils.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+4703 INFO: Processing pre-safe-import-module hook 'hook-jaraco.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+4703 INFO: Setuptools: 'jaraco' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.jaraco'!
+4713 INFO: Processing pre-safe-import-module hook 'hook-more_itertools.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+4837 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+4919 INFO: Processing pre-safe-import-module hook 'hook-packaging.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+5136 INFO: Processing standard module hook 'hook-setuptools._vendor.jaraco.text.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+5137 INFO: Processing pre-safe-import-module hook 'hook-importlib_resources.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+5306 INFO: Processing pre-safe-import-module hook 'hook-importlib_metadata.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+5306 INFO: Setuptools: 'importlib_metadata' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.importlib_metadata'!
+5333 INFO: Processing standard module hook 'hook-setuptools._vendor.importlib_metadata.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+5364 INFO: Processing pre-safe-import-module hook 'hook-zipp.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+5365 INFO: Setuptools: 'zipp' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.zipp'!
+5651 INFO: Processing pre-safe-import-module hook 'hook-tomli.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+5651 INFO: Setuptools: 'tomli' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.tomli'!
+6190 INFO: Processing pre-safe-import-module hook 'hook-wheel.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/pre_safe_import_module'
+6191 INFO: Setuptools: 'wheel' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.wheel'!
+6683 INFO: Processing standard module hook 'hook-charset_normalizer.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+6911 INFO: Processing standard module hook 'hook-certifi.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+8118 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+9199 INFO: Processing standard module hook 'hook-jinja2.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+10490 INFO: Processing standard module hook 'hook-mistune.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+10815 INFO: Processing standard module hook 'hook-xml.dom.domreg.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+11383 INFO: Processing standard module hook 'hook-lxml.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+11569 INFO: Processing standard module hook 'hook-lxml.etree.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/jieba/__init__.py:44: SyntaxWarning: "\." is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\."? A raw string is also an option.
+  re_han_default = re.compile("([\u4E00-\u9FD5a-zA-Z0-9+#&\._%\-]+)", re.U)
+/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/jieba/__init__.py:46: SyntaxWarning: "\s" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\s"? A raw string is also an option.
+  re_skip_default = re.compile("(\r\n|\s)", re.U)
+11724 INFO: Processing standard module hook 'hook-jieba.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/jieba/finalseg/__init__.py:78: SyntaxWarning: "\." is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\."? A raw string is also an option.
+  re_skip = re.compile("([a-zA-Z0-9]+(?:\.\d+)?%?)")
+/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/jieba/posseg/__init__.py:16: SyntaxWarning: "\." is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\."? A raw string is also an option.
+  re_skip_detail = re.compile("([\.0-9]+|[a-zA-Z0-9]+)")
+/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/jieba/posseg/__init__.py:17: SyntaxWarning: "\." is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\."? A raw string is also an option.
+  re_han_internal = re.compile("([\u4E00-\u9FD5a-zA-Z0-9+#&\._]+)")
+/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/jieba/posseg/__init__.py:18: SyntaxWarning: "\s" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\s"? A raw string is also an option.
+  re_skip_internal = re.compile("(\r\n|\s)")
+/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/jieba/posseg/__init__.py:21: SyntaxWarning: "\." is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\."? A raw string is also an option.
+  re_num = re.compile("[\.0-9]+")
+18210 INFO: Processing standard module hook 'hook-PIL.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+18329 INFO: Processing standard module hook 'hook-PIL.Image.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+18568 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+18781 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+/Users/casey/WorkBuddy/20260325140058/wechat-publisher/modules/user_db.py:1183: SyntaxWarning: "\[" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\["? A raw string is also an option.
+  words = re.split(r'[\s，。！？、：；""''《》【】\[\]()（）\-_—]+', title)
+19149 INFO: Processing standard module hook 'hook-sqlite3.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+19365 INFO: Processing standard module hook 'hook-apscheduler.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+19548 INFO: Processing standard module hook 'hook-zoneinfo.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+19650 INFO: Analyzing hidden import 'qrcode'
+19739 INFO: Analyzing hidden import 'apscheduler.triggers.cron'
+19761 INFO: Analyzing hidden import 'apscheduler.triggers.interval'
+19765 INFO: Processing module hooks (post-graph stage)...
+20370 INFO: Processing standard module hook 'hook-lxml.isoschematron.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+21096 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks'
+21187 INFO: Processing standard module hook 'hook-lxml.objectify.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+21196 INFO: Performing binary vs. data reclassification (143 entries)
+21234 INFO: Looking for ctypes DLLs
+21286 INFO: Analyzing run-time hooks ...
+21289 INFO: Including run-time hook 'pyi_rth_inspect.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/rthooks'
+21292 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/rthooks'
+21293 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/rthooks'
+21295 INFO: Including run-time hook 'pyi_rth_setuptools.py' from '/Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/hooks/rthooks'
+21307 INFO: Creating base_library.zip...
+21323 INFO: Looking for dynamic libraries
+21533 INFO: Warnings written to /Users/casey/WorkBuddy/20260325140058/wechat-publisher/build/WeChatPublisher/warn-WeChatPublisher.txt
+21566 INFO: Graph cross-reference written to /Users/casey/WorkBuddy/20260325140058/wechat-publisher/build/WeChatPublisher/xref-WeChatPublisher.html
+21672 INFO: checking PYZ
+21672 INFO: Building PYZ because PYZ-00.toc is non existent
+21672 INFO: Building PYZ (ZlibArchive) /Users/casey/WorkBuddy/20260325140058/wechat-publisher/build/WeChatPublisher/PYZ-00.pyz
+22581 INFO: Building PYZ (ZlibArchive) /Users/casey/WorkBuddy/20260325140058/wechat-publisher/build/WeChatPublisher/PYZ-00.pyz completed successfully.
+22602 INFO: EXE target arch: arm64
+22602 INFO: Code signing identity: None
+22604 INFO: checking PKG
+22604 INFO: Building PKG because PKG-00.toc is non existent
+22604 INFO: Building PKG (CArchive) WeChatPublisher.pkg
+22729 INFO: Building PKG (CArchive) WeChatPublisher.pkg completed successfully.
+22730 INFO: Bootloader /Users/casey/WorkBuddy/20260325140058/wechat-publisher/.venv/lib/python3.14/site-packages/PyInstaller/bootloader/Darwin-64bit/runw
+22730 INFO: checking EXE
+22730 INFO: Building EXE because EXE-00.toc is non existent
+22730 INFO: Building EXE from EXE-00.toc
+22730 INFO: Copying bootloader EXE to /Users/casey/WorkBuddy/20260325140058/wechat-publisher/build/WeChatPublisher/WeChatPublisher
+22735 INFO: Converting EXE to target arch (arm64)
+23211 INFO: Removing signature(s) from EXE
+23238 INFO: Modifying Mach-O image UUID(s) in EXE
+23244 INFO: Appending PKG archive to EXE
+23254 INFO: Fixing EXE headers for code signing
+23258 INFO: Re-signing the EXE
+23305 INFO: Building EXE from EXE-00.toc completed successfully.
+23308 INFO: checking COLLECT
+23308 INFO: Building COLLECT because COLLECT-00.toc is non existent
+23308 INFO: Building COLLECT COLLECT-00.toc
+29612 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+29620 INFO: checking BUNDLE
+29620 INFO: Building BUNDLE because BUNDLE-00.toc is non existent
+29620 INFO: Building BUNDLE BUNDLE-00.toc
+34094 INFO: Signing the BUNDLE...
+34254 INFO: Building BUNDLE BUNDLE-00.toc completed successfully.
+34260 INFO: Build complete! The results are available in: /Users/casey/WorkBuddy/20260325140058/wechat-publisher/dist

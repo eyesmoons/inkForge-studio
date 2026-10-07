@@ -1,0 +1,23 @@
+# .gitignore for wechat-publisher
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.cache/
+output/covers/*.jpg
+output/drafts/*.html
+config.json
+coze_config.json
+*.env
+.env
+# 编译产物（无需提交）
+build/
+dist/
+*.exe
+Download/
+NSIS/
+# >>> Comet managed project state >>>
+!/.comet/
+/.comet/*
+!/.comet/config.yaml
+# <<< Comet managed project state <<<

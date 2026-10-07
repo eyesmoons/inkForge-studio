@@ -1,0 +1,14 @@
+{
+  "change": "coze-agent",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "ddd55844c88ba5baf875480587f355f818f1dad33bc98756414f799ccf789dc8",
+  "files": [
+    { "path": "docs/openspec/changes/coze-agent/proposal.md", "sha256": "e1d6a61b38d41c130256543acbff188e1538f5440a275f26836a16930d4ad17a" },
+    { "path": "docs/openspec/changes/coze-agent/design.md", "sha256": "e047422c228ca06c9635ddb150a60eb1b4921046186bc9afbe58910e1983c869" },
+    { "path": "docs/openspec/changes/coze-agent/tasks.md", "sha256": "42c3011af09da191cefdd04263c70aac2450068d3f0e9d7a5b01d53710739df7" },
+    { "path": "docs/openspec/changes/coze-agent/specs/agent/spec.md", "sha256": "9f3ae8de016904f90175b40cc866376ed427973b600ac10e9ecfeba4c7182aaf" }
+  ]
+}

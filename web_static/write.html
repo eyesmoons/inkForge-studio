@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>写稿&预览 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>inkForge studio</p>
+    </div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">✍️ 一键写稿</div>
+      <div class="topbar-actions">
+        <!-- 账号选择器 -->
+        <select class="form-select" id="account-selector" onchange="onAccountChange()" style="margin-right:12px;min-width:180px;">
+          <option value="">-- 加载中 --</option>
+        </select>
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- 公众号平台 -->
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 顶部设置栏 -->
+      <div class="card" style="margin-bottom:14px;padding:16px 24px;">
+        <div class="form-group form-full" style="margin-bottom:14px;">
+          <label class="form-label" style="display:flex;align-items:center;gap:6px;">
+            自定义选题
+            <button class="btn btn-sm btn-secondary" onclick="clearCustomTopic()" style="padding:2px 8px;font-size:11px;margin-left:auto;">清空</button>
+          </label>
+          <input class="form-input" id="custom-topic" type="text" placeholder="输入自定义选题，例如：深度解析 2026 年 AI 手机的发展趋势和核心突破点...">
+          <div class="form-hint" style="margin-top:6px;color:#666;font-size:12px;">
+            💡 输入自定义选题后，点击「🤖 AI 生成」将根据此选题生成文章。留空则使用默认选题。
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div class="form-group" style="flex:1;min-width:160px;">
+            <label class="form-label">文章风格</label>
+            <select class="form-select" id="write-style">
+              <option>观点评论</option>
+              <option>深度科普</option>
+              <option>简洁报道</option>
+              <option>评测对比</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:120px;">
+            <label class="form-label">字数</label>
+            <input class="form-input" id="write-words" type="number" value="2000" min="500" max="5000">
+          </div>
+          <div class="form-group" style="flex:1;min-width:120px;">
+            <label class="form-label">排版模板</label>
+            <select class="form-select" id="write-template" onchange="previewMarkdown()">
+              <option value="">排版模板</option>
+              <option value="classic">📐 经典</option>
+              <option value="magazine">📖 杂志</option>
+              <option value="tech">🔬 科技</option>
+              <option value="minimal">⬜ 极简</option>
+              <option value="notebook">📓 笔记</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:120px;">
+            <label class="form-label">配色</label>
+            <select class="form-select" id="write-theme" onchange="previewMarkdown()">
+              <option value="blue">蓝色 (Blue)</option>
+              <option value="green">绿色 (Green)</option>
+              <option value="dark">深色 (Dark)</option>
+              <option value="warm">暖色 (Warm)</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:140px;">
+            <label class="form-label">写作技能 <a href="/skill.html" target="_blank" style="font-size:11px;color:var(--accent,#4a9eff);text-decoration:none;">管理</a></label>
+            <select class="form-select" id="write-skill">
+              <option value="">不使用技能</option>
+            </select>
+          </div>
+          <div style="align-self:flex-end;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-primary" id="gen-btn" onclick="generateArticle()">🤖 AI 生成</button>
+            <button class="btn btn-secondary" onclick="previewMarkdown()">👁 预览</button>
+            <button class="btn btn-blue" id="publish-btn" onclick="publishDraft()" disabled>📤 推送草稿</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 生成进度 -->
+      <div class="card" id="write-log-card" style="display:none;margin-bottom:14px;">
+        <div class="card-title">⏳ 生成进度</div>
+        <div class="progress-bar"><div class="progress-fill running" id="write-progress"></div></div>
+        <div class="log-terminal" id="write-log" style="max-height:200px;"></div>
+      </div>
+
+      <!-- 编辑器布局 -->
+      <div class="editor-layout">
+        <div class="editor-panel">
+          <div class="panel-header">
+            ✍️ Markdown 编辑器
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm btn-secondary" onclick="clearEditor()">清空</button>
+              <button class="btn btn-sm btn-secondary" onclick="copyMd()">复制</button>
+            </div>
+          </div>
+          <textarea class="editor-textarea" id="md-editor" placeholder="在这里输入 Markdown 内容，或点击「AI 生成」按钮自动生成文章...
+
+# 文章标题
+
+开篇内容...
+
+## 第一个段落
+
+正文内容..." oninput="debouncedPreview()" onpaste="setTimeout(syncPublishBtn,50)"></textarea>
+        </div>
+          <div class="preview-panel">
+            <div class="panel-header" style="flex-wrap:wrap;gap:8px 12px;">
+              <span style="white-space:nowrap;">👁 微信预览</span>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <button class="btn btn-sm btn-secondary" onclick="copyWechatHtml()" title="复制 HTML">📋 复制</button>
+                <button class="btn btn-sm btn-secondary" onclick="openPreviewInTab()" title="在新窗口打开预览">🪟 新窗口</button>
+              </div>
+            </div>
+          <iframe class="preview-iframe" id="preview-iframe" src="about:blank"></iframe>
+        </div>
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<!-- 模态框：文章预览 -->
+<div class="modal-overlay" id="article-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">文章预览</div>
+      <button class="btn-close" onclick="closeModal('article-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="article-preview-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('article-modal')">关闭</button>
+      <button class="btn btn-primary" onclick="publishPreviewedArticle()">📤 发布到公众号</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框：确认对话框 -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">确认</div>
+      <button class="btn-close" onclick="closeModal('confirm-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message">确定要执行此操作吗？</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('confirm-modal')">取消</button>
+      <button class="btn btn-primary" id="confirm-ok-btn">确定</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="/common.js"></script>
+<script>
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    if (item.getAttribute("href") === currentPage) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  loadAccounts();
+  startSSE();
+  loadWriteSkills();
+
+  // 检查是否从自动选题页面跳转过来
+  const selectedTopic = localStorage.getItem('selectedTopic');
+  if (selectedTopic) {
+    try {
+      const topic = JSON.parse(selectedTopic);
+      localStorage.removeItem('selectedTopic');
+      // 将选题填入自定义选题输入框
+      const customTopicEl = document.getElementById('custom-topic');
+      if (customTopicEl) {
+        customTopicEl.value = topic.title || topic.summary || '';
+      }
+      // 预填选题信息，让用户先选择 skill/风格/字数等信息
+      toast(`选题"${topic.title || topic.summary}"已加载，请选择写作技能和风格后点击「AI 生成」`, 'success');
+    } catch (e) {
+      console.error('解析选题信息失败:', e);
+      localStorage.removeItem('selectedTopic');
+    }
+  }
+
+  // 检查是否从历史文章页面跳转过来
+  const loadedFromHistory = sessionStorage.getItem('loadedFromHistory');
+  if (loadedFromHistory === 'true') {
+    const loadedMd = sessionStorage.getItem('loadedArticleMd');
+    const loadedPath = sessionStorage.getItem('loadedArticlePath');
+
+    if (loadedMd) {
+      document.getElementById('md-editor').value = loadedMd;
+      state.currentArticlePath = loadedPath || null;
+      previewMarkdown();
+      syncPublishBtn();
+      toast('文章已加载到编辑器', 'success');
+    }
+
+    // 检查是否需要自动推送
+    const autoPublish = sessionStorage.getItem('autoPublish');
+    if (autoPublish === 'true') {
+      // 清除标记
+      sessionStorage.removeItem('loadedFromHistory');
+      sessionStorage.removeItem('loadedArticleMd');
+      sessionStorage.removeItem('loadedArticlePath');
+      sessionStorage.removeItem('autoPublish');
+
+      // 延迟一下推送，确保页面完全加载
+      setTimeout(() => {
+        const pubBtn = document.getElementById('publish-btn');
+        if (pubBtn && !pubBtn.disabled) {
+          pubBtn.click();
+        }
+      }, 500);
+    } else {
+      // 清除标记
+      sessionStorage.removeItem('loadedFromHistory');
+      sessionStorage.removeItem('loadedArticleMd');
+      sessionStorage.removeItem('loadedArticlePath');
+    }
+  }
+});
+</script>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能体 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<link rel="stylesheet" href="/agent.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>inkForge studio</p>
+    </div>
+    <nav class="nav">
+      <a href="/dashboard.html" class="nav-item"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item"><span class="icon">✍️</span> 写稿 &amp; 预览</a>
+      <a href="/rewrite.html" class="nav-item"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item"><span class="icon">📋</span> 一键排版</a>
+      <a href="/history.html" class="nav-item"><span class="icon">📂</span> 历史文章</a>
+      <a href="/schedule.html" class="nav-item"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer">v1.0 · 公众号自动发布平台</div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">🤖 智能体</div>
+      <div class="topbar-actions">
+        <select class="form-select" id="account-selector" onchange="onAccountChange()" style="margin-right:12px;min-width:180px;">
+          <option value="">-- 加载中 --</option>
+        </select>
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()"><span>👤</span> 个人中心</div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()"><span>🚪</span> 退出登录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="agent-layout">
+        <!-- 左侧输入区 -->
+        <div class="agent-input-panel">
+          <div class="card">
+            <div class="card-title">🔗 输入文章链接</div>
+            <div class="form-group form-full">
+              <label class="form-label">文章链接</label>
+              <input class="form-input" id="agent-url" type="text" placeholder="粘贴文章链接，例如：https://www.36kr.com/p/...">
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">改写提示词</label>
+              <textarea class="form-textarea" id="agent-prompt" rows="3" placeholder="描述改写要求...">不要抄袭,去除AI味</textarea>
+              <div class="form-hint">提示：可指定风格、角度、受众等。</div>
+            </div>
+            <button class="btn btn-primary" id="agent-generate-btn" onclick="generateArticle()" style="width:100%;">
+              ✨ 生成文章
+            </button>
+          </div>
+
+          <!-- 生成进度 -->
+          <div class="card" id="agent-log-card" style="display:none;margin-top:14px;">
+            <div class="card-title">⏳ 生成进度</div>
+            <div class="progress-bar"><div class="progress-fill running" id="agent-progress"></div></div>
+            <div class="log-terminal" id="agent-log" style="max-height:200px;"></div>
+          </div>
+        </div>
+
+        <!-- 右侧结果区 -->
+        <div class="agent-result-panel">
+          <div class="card" id="agent-result-card" style="display:none;">
+            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+              <span>✅ 改写结果</span>
+              <button class="btn btn-sm btn-primary" id="agent-push-btn" onclick="pushToDraft()">📤 推送到草稿箱</button>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">标题</label>
+              <input class="form-input" id="agent-result-title" type="text">
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">正文（Markdown）</label>
+              <textarea class="form-textarea" id="agent-result-content" rows="20" style="font-family:inherit;font-size:13px;"></textarea>
+            </div>
+          </div>
+
+          <!-- 推送结果提示 -->
+          <div class="card" id="agent-push-result" style="display:none;margin-top:14px;">
+            <div class="card-title">📡 推送结果</div>
+            <div id="agent-push-msg" style="font-size:13px;color:var(--text2);"></div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /content -->
+  </div> <!-- /main -->
+</div> <!-- /layout -->
+
+<script src="/common.js"></script>
+<script src="/agent.js"></script>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+</body>
+</html>

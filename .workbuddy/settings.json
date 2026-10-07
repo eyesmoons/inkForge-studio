@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/casey/workspace/wechat-publisher/.workbuddy/skills/comet/scripts/comet-hook-router.mjs\" --platform \"workbuddy\" --project-root \"/Users/casey/workspace/wechat-publisher\"",
+            "description": "Route each write to the selected Comet Native or Classic phase guard"
+          }
+        ]
+      }
+    ]
+  }
+}

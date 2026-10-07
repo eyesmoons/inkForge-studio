@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统配置 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<style>
+/* 手风琴样式 */
+.accordion {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg2);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.accordion-header:hover {
+  background: var(--bg3);
+}
+.accordion-title {
+  font-size: 15px;
+  font-weight: 500;
+}
+.accordion-icon {
+  transition: transform 0.2s;
+  font-size: 12px;
+}
+.accordion.open .accordion-icon {
+  transform: rotate(180deg);
+}
+.accordion-content {
+  display: none;
+  padding: 20px;
+  background: var(--bg);
+}
+.accordion.open .accordion-content {
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>InkForge Studio</p>
+    </div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">⚙️ 系统配置</div>
+      <div class="topbar-actions">
+        <!-- 账号选择器 -->
+        <select class="form-select" id="account-selector" onchange="onAccountChange()" style="margin-right:12px;min-width:180px;">
+          <option value="">-- 加载中 --</option>
+        </select>
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- 公众号平台 -->
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 账号管理手风琴 -->
+      <div class="accordion" id="acc-accounts">
+        <div class="accordion-header" onclick="toggleAccordion('acc-accounts')">
+          <span class="accordion-title">📱 公众号账号管理</span>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+            <button class="btn btn-sm btn-primary" onclick="openAccountModal()">+ 新增账号</button>
+          </div>
+          <div id="account-list">
+            <div style="text-align:center;color:var(--text2);padding:32px 0;font-size:13px;">加载中...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 领域分类管理手风琴 -->
+      <div class="accordion" id="acc-domains">
+        <div class="accordion-header" onclick="toggleAccordion('acc-domains')">
+          <span class="accordion-title">🏷️ 领域分类管理</span>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+            <button class="btn btn-sm btn-primary" onclick="openDomainModal()">+ 新增领域</button>
+          </div>
+          <div id="domain-list">
+            <div style="text-align:center;color:var(--text2);padding:32px 0;font-size:13px;">加载中...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 模型管理手风琴 -->
+      <div class="accordion" id="acc-ai-models">
+        <div class="accordion-header" onclick="toggleAccordion('acc-ai-models')">
+          <span class="accordion-title">🤖 AI 大模型管理</span>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+            <button class="btn btn-sm btn-primary" onclick="openAIModelModal()">+ 新增模型</button>
+          </div>
+          <div id="ai-model-list">
+            <div style="text-align:center;color:var(--text2);padding:32px 0;font-size:13px;">加载中...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 公众号运营规范手风琴 -->
+      <div class="accordion open" id="acc-guidelines">
+        <div class="accordion-header" onclick="toggleAccordion('acc-guidelines')">
+          <span class="accordion-title">📋 公众号运营规范</span>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div style="margin-bottom:12px;">
+            <div class="form-label">微信公众号官方推荐运营规范<br><small style="color:var(--text3);font-weight:normal;">系统将在选题和写稿时优先参考此规范，请将官方运营规范粘贴至下方文本框保存。</small></div>
+          </div>
+          <textarea class="form-textarea" id="guidelines-content" rows="30" placeholder="请粘贴微信公众号官方运营规范内容至此处...
+系统将在生成选题和撰写文章时：
+① 优先遵循此规范
+② 避免生成违规内容
+③ 检查历史是否有类似选题" style="min-height:400px;resize:vertical;width:100%;box-sizing:border-box;"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+            <button class="btn btn-primary" onclick="saveGuidelines()">💾 保存规范</button>
+          </div>
+        </div>
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<!-- 账号编辑模态框 -->
+<div class="modal-overlay" id="account-modal">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <div class="modal-title" id="account-modal-title">新增公众号账号</div>
+      <button class="modal-close" onclick="closeModal('account-modal')">✕</button>
+    </div>
+    <div class="form-grid" style="margin-top:4px;">
+      <div class="form-group form-full">
+        <label class="form-label">账号 ID（唯一标识）</label>
+        <input class="form-input" id="acc-id" type="text" placeholder="如：tech_blog, news_daily">
+        <div class="tip">只能是字母、数字、下划线，用于内部标识，不重复即可。</div>
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">账号名称</label>
+        <input class="form-input" id="acc-name" type="text" placeholder="如：科技视界、每日资讯">
+      </div>
+      <div class="form-group">
+        <label class="form-label">AppID</label>
+        <input class="form-input" id="acc-appid" type="text" placeholder="wx开头">
+      </div>
+      <div class="form-group">
+        <label class="form-label">AppSecret</label>
+        <div style="position:relative;display:flex;align-items:center;">
+          <input class="form-input" id="acc-appsecret" type="password" placeholder="留空则不修改（编辑时）" style="padding-right:38px;flex:1;">
+          <button type="button" id="btn-toggle-secret" onclick="toggleSecretVisibility()"
+            title="显示/隐藏 AppSecret"
+            style="position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:16px;padding:0;line-height:1;color:#666;">
+            👁
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">作者名</label>
+        <input class="form-input" id="acc-author" type="text" placeholder="公众号作者">
+      </div>
+      <div class="form-group">
+        <label class="form-label">领域分类</label>
+        <select class="form-select" id="acc-domain">
+          <option value="科技">科技</option>
+          <option value="汽车">汽车</option>
+          <option value="财经">财经</option>
+          <option value="美食">美食</option>
+          <option value="育儿">育儿</option>
+          <option value="健康">健康</option>
+          <option value="旅游">旅游</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">选题提示词</label>
+        <textarea class="form-textarea" id="acc-topic-prompt" rows="3" placeholder="描述选题方向，例如：整理【当天手机领域最值得关注的动态】..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">文章风格</label>
+        <select class="form-select" id="acc-style">
+          <option>观点评论</option>
+          <option>深度科普</option>
+          <option>简洁报道</option>
+          <option>评测对比</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">目标字数</label>
+        <input class="form-input" id="acc-words" type="number" value="2000" min="500" max="5000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">封面主题</label>
+        <select class="form-select" id="acc-theme">
+          <option value="green">绿色</option>
+          <option value="dark">深色</option>
+          <option value="blue">蓝色</option>
+          <option value="warm">暖色</option>
+        </select>
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">写作提示词</label>
+        <textarea class="form-textarea" id="acc-writing-prompt" rows="5" placeholder="描述写作风格、格式要求、语气等，留空则使用默认提示词..."></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">结尾固定词</label>
+        <input type="text" class="form-input" id="acc-ending-text" placeholder="感谢阅读，我们下期见。" maxlength="100">
+        <small style="color:var(--text2);display:block;margin-top:4px;">文章结尾自动附加的固定内容，如"感谢阅读，我们下期见。"</small>
+      </div>
+      <div class="form-group form-full">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);">
+          <input type="checkbox" id="acc-set-default" style="width:auto;height:auto;">
+          设为默认账号（首次添加时自动勾选）
+        </label>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button class="btn btn-secondary" onclick="closeModal('account-modal')">取消</button>
+      <button class="btn btn-primary" id="acc-save-btn" onclick="saveAccount()">💾 保存账号</button>
+    </div>
+  </div>
+</div>
+
+<!-- 领域编辑模态框 -->
+<div class="modal-overlay" id="domain-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title" id="domain-modal-title">新增领域分类</div>
+      <button class="modal-close" onclick="closeModal('domain-modal')">✕</button>
+    </div>
+    <div class="form-group form-full" style="margin-top:4px;">
+      <label class="form-label">领域名称</label>
+      <input class="form-input" id="domain-name" type="text" placeholder="如：育儿、健身、宠物等">
+      <div class="tip">建议使用简短的中文词，用于账号分类和选题时的背景参考。</div>
+    </div>
+    <div class="form-group form-full">
+      <label class="form-label">领域描述</label>
+      <textarea class="form-textarea" id="domain-desc" rows="2" placeholder="描述该领域的方向，例如：关注儿童教育、学习技巧、育儿心得等..."></textarea>
+    </div>
+    <div class="form-group form-full">
+      <label class="form-label">参考网站</label>
+      <textarea class="form-textarea" id="domain-websites" rows="6" placeholder="每行一个网站，格式：名称:URL 或直接填 URL
+例如：
+汽车之家:https://www.autohome.com.cn
+懂车帝:https://www.dongchedi.com
+https://www.yiche.com"></textarea>
+      <div class="tip">可选。填写后系统在生成选题时将这些网站作为参考来源。</div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button class="btn btn-secondary" onclick="closeModal('domain-modal')">取消</button>
+      <button class="btn btn-primary" id="domain-save-btn" onclick="saveDomain()">💾 保存领域</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI 模型编辑模态框 -->
+<div class="modal-overlay" id="ai-model-modal">
+  <div class="modal" style="max-width:550px;">
+    <div class="modal-header">
+      <div class="modal-title" id="ai-model-modal-title">新增 AI 模型</div>
+      <button class="modal-close" onclick="closeModal('ai-model-modal')">✕</button>
+    </div>
+    <div class="form-group form-full" style="margin-top:4px;">
+      <label class="form-label">模型名称</label>
+      <input class="form-input" id="ai-model-name" type="text" placeholder="如：DeepSeek V3、GPT-4、Claude-3 等">
+      <div class="tip">自定义名称，便于识别和选择。</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">提供商</label>
+      <select class="form-select" id="ai-model-provider">
+        <option value="openai">OpenAI</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="ollama">Ollama</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="zhipu">智谱</option>
+        <option value="tongyi">通义</option>
+        <option value="moonshot">Moonshot</option>
+        <option value="qianfan">百度千帆</option>
+        <option value="other">其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">API Base URL</label>
+      <input class="form-input" id="ai-model-base-url" type="text" placeholder="如：https://api.openai.com/v1">
+    </div>
+    <div class="form-group">
+      <label class="form-label">模型标识</label>
+      <input class="form-input" id="ai-model-model" type="text" placeholder="如：gpt-4, claude-3-opus, deepseek-chat">
+    </div>
+    <div class="form-group form-full">
+      <label class="form-label">API Key</label>
+      <input class="form-input" id="ai-model-api-key" type="password" placeholder="输入 API Key">
+    </div>
+    <div class="form-group form-full" style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--text2);">
+        <input type="checkbox" id="ai-model-is-image" style="width:16px;height:16px;accent-color:var(--accent);">
+        图像生成模型
+      </label>
+      <span style="font-size:12px;color:var(--text3);">开启后，该模型将用于封面制作等图像生成场景</span>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button class="btn btn-secondary" onclick="closeModal('ai-model-modal')">取消</button>
+      <button class="btn btn-primary" id="ai-model-save-btn" onclick="saveAIModel()">💾 保存模型</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+<script src="/common.js"></script>
+<script>
+// 加载公众号运营规范
+async function loadGuidelines() {
+  try {
+    var res = await fetch('/api/operating_guidelines');
+    var data = await res.json();
+    document.getElementById('guidelines-content').value = data.content || '';
+  } catch(e) {
+    console.error('加载运营规范失败', e);
+  }
+}
+
+// 保存公众号运营规范
+async function saveGuidelines() {
+  var content = document.getElementById('guidelines-content').value;
+  try {
+    var res = await fetch('/api/operating_guidelines', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({content: content})
+    });
+    if (res.ok) {
+      toast('✅ 运营规范已保存', 'success');
+    } else {
+      toast('❌ 保存失败', 'error');
+    }
+  } catch(e) {
+    toast('❌ 保存失败: ' + e.message, 'error');
+  }
+}
+
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    if (item.getAttribute("href") === currentPage) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  // 加载配置页面的所有数据
+  loadConfig();
+  loadGuidelines();
+  // 默认打开第一个手风琴（运营规范默认展开）
+  document.getElementById('acc-accounts').classList.add('open');
+});
+</script>
+
+</body>
+</html>

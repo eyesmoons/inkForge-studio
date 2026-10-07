@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自动选题 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>InkForge Studio</p>
+    </div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">🔍 自动选题</div>
+      <div class="topbar-actions">
+        <!-- 账号选择器 -->
+        <select class="form-select" id="account-selector" onchange="onAccountChange()" style="margin-right:12px;min-width:180px;">
+          <option value="">-- 加载中 --</option>
+        </select>
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- 公众号平台 -->
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 选题参数 -->
+      <div class="card">
+        <div class="card-title">🔍 选题参数</div>
+        <div class="form-grid">
+          <div class="form-group form-full">
+            <label class="form-label">选题提示词</label>
+            <textarea class="form-textarea" id="topic-prompt" rows="4" placeholder="描述选题方向，例如：请整理【当天手机领域最值得关注的 10 条动态】，重点覆盖以下方向：新机，用机，选机，AI 智能化等热度较高的选题。&#10;筛选标准：优先选择具备「新增信息量」的动态。&#10;优先包含「刚发生/24 小时内」的动态。"></textarea>
+            <div class="form-hint" style="margin-top:6px;color:#666;font-size:13px;">
+              💡 <strong>默认使用所选公众号的提示词</strong>（在系统配置中设置），也可以在这里手动输入新的提示词覆盖默认值。
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="startTopics()">🔍 获取选题</button>
+        </div>
+      </div>
+
+      <!-- 选题进度 -->
+      <div class="card" id="topics-log-card" style="display:none">
+        <div class="card-title">⏳ 选题进度</div>
+        <div class="progress-bar"><div class="progress-fill running" id="topics-progress"></div></div>
+        <div class="log-terminal" id="topics-log"></div>
+      </div>
+
+      <!-- 选题列表 -->
+      <div id="topics-result" style="display:none">
+        <div class="card">
+          <div class="card-title">
+            📋 选题列表
+            <span class="badge" id="topics-count-badge">0 条</span>
+          </div>
+          <div class="topic-list" id="topics-list"></div>
+          <div style="margin-top:14px;display:flex;gap:10px;">
+            <button class="btn btn-primary" id="write-selected-btn" onclick="writeSelectedTopic()" disabled>✍️ 用选中选题写稿</button>
+            <span id="selected-topic-hint" style="font-size:12px;color:var(--text2);align-self:center">请先选择一条选题</span>
+          </div>
+        </div>
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<!-- 模态框：文章预览 -->
+<div class="modal-overlay" id="article-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">文章预览</div>
+      <button class="btn-close" onclick="closeModal('article-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="article-preview-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('article-modal')">关闭</button>
+      <button class="btn btn-primary" onclick="publishPreviewedArticle()">📤 发布到公众号</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框：确认对话框 -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">确认</div>
+      <button class="btn-close" onclick="closeModal('confirm-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message">确定要执行此操作吗？</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('confirm-modal')">取消</button>
+      <button class="btn btn-primary" id="confirm-ok-btn">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script>
+// 覆盖 common.js 中的 writeSelectedTopic，适应独立页面架构
+function writeSelectedTopic() {
+  if (!state.selectedTopic) {
+    alert('请先选择一个选题');
+    return;
+  }
+  // 将选题信息保存到 localStorage
+  localStorage.setItem('selectedTopic', JSON.stringify(state.selectedTopic));
+  // 跳转到写稿页面
+  window.location.href = '/write.html';
+}
+
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    if (item.getAttribute("href") === currentPage) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  loadAccounts();
+  startSSE();
+});
+</script>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+</body>
+</html>

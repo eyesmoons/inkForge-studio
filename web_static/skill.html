@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>写作技能 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+<style>
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.skill-card {
+  background: var(--card, var(--bg2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.skill-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border-color: var(--accent, #4a9eff);
+}
+.skill-card.inactive {
+  opacity: 0.55;
+}
+.skill-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.skill-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+.skill-category {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg3, #e8e8e8);
+  color: var(--text2, #666);
+  white-space: nowrap;
+}
+.skill-desc {
+  font-size: 13px;
+  color: var(--text2, #888);
+  margin-bottom: 10px;
+  line-height: 1.5;
+  min-height: 20px;
+}
+.skill-prompt-preview {
+  font-size: 12px;
+  color: var(--text2, #999);
+  background: var(--bg3, #f5f5f5);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  max-height: 80px;
+  overflow: hidden;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-all;
+  position: relative;
+}
+.skill-prompt-preview::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 30px;
+  background: linear-gradient(transparent, var(--bg3, #f5f5f5));
+}
+.skill-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+.skill-status {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+.skill-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.skill-actions {
+  display: flex;
+  gap: 6px;
+}
+.skill-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text2, #999);
+}
+.skill-empty .icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+.template-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.template-chip {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg2);
+}
+.template-chip:hover {
+  border-color: var(--accent, #4a9eff);
+  color: var(--accent, #4a9eff);
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>inkForge studio</p>
+    </div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">🎯 写作技能</div>
+      <div class="topbar-actions">
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 顶部操作栏 -->
+      <div class="card" style="margin-bottom:14px;padding:16px 24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:15px;font-weight:600;">写作技能管理</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px;">
+              创建自定义写作技能，在写稿时选择技能可覆盖默认提示词，实现不同风格/领域的精准写作
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="openSkillModal()">+ 新建技能</button>
+        </div>
+
+        <!-- 快捷模板 -->
+        <div style="margin-top:14px;">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">快捷模板（点击快速创建）：</div>
+          <div class="template-chips" id="template-chips"></div>
+        </div>
+      </div>
+
+      <!-- 技能列表 -->
+      <div id="skill-list-container">
+        <div class="skill-empty">
+          <div class="icon">🎯</div>
+          <div>暂无写作技能，点击「新建技能」创建第一个</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框：创建/编辑技能 -->
+<div class="modal-overlay" id="skill-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="skill-modal-title">新建写作技能</div>
+      <button class="btn-close" onclick="closeModal('skill-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="skill-id">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">技能名称 <span style="color:#e74c3c;">*</span></label>
+        <input class="form-input" id="skill-name" type="text" placeholder="如：科技深度分析、汽车评测风格、幽默段子手...">
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">分类标签</label>
+        <input class="form-input" id="skill-category" type="text" placeholder="如：科技、汽车、生活、通用" value="通用">
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">技能描述</label>
+        <input class="form-input" id="skill-description" type="text" placeholder="简要描述这个技能的用途和效果">
+      </div>
+      <div class="form-group">
+        <label class="form-label">
+          技能提示词 <span style="color:#e74c3c;">*</span>
+          <span style="font-size:11px;color:var(--text2);font-weight:normal;margin-left:8px;">
+            写作时将作为最高优先级提示词使用，覆盖默认写作提示
+          </span>
+        </label>
+        <textarea class="form-textarea" id="skill-prompt" rows="14"
+          placeholder="输入技能提示词内容。例如：&#10;&#10;你是一位资深的科技评论员，擅长用犀利的视角解读科技行业动态。&#10;写作要求：&#10;- 观点鲜明，敢于下结论&#10;- 多用数据和案例支撑论点&#10;- 语言风格：专业但不枯燥，有节奏感&#10;- 文章结构：开篇抛出观点 → 分层论证 → 总结升华"
+          style="min-height:280px;resize:vertical;width:100%;box-sizing:border-box;font-family:monospace;font-size:13px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('skill-modal')">取消</button>
+      <button class="btn btn-primary" onclick="saveSkill()">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框：确认删除 -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">确认删除</div>
+      <button class="btn-close" onclick="closeModal('confirm-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message">确定要删除此技能吗？</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('confirm-modal')">取消</button>
+      <button class="btn btn-primary" id="confirm-ok-btn" style="background:#e74c3c;">确定删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+<script src="/common.js"></script>
+<script>
+var SKILL_TEMPLATES = [
+  {
+    name: '科技深度分析',
+    category: '科技',
+    description: '适合科技行业深度分析文章，观点犀利、数据驱动',
+    prompt: '你是一位资深科技评论员，擅长用犀利的视角解读科技行业动态。\n\n写作要求：\n- 观点鲜明，敢于直接下结论\n- 多用具体数据和真实案例支撑论点\n- 语言风格：专业但不枯燥，有节奏感\n- 文章结构：开篇抛出核心观点 → 分层论证（每层有明确论据）→ 总结升华\n- 适当使用反问和对比手法，增强说服力\n- 避免空话套话，每句话都要有信息量'
+  },
+  {
+    name: '汽车评测风格',
+    category: '汽车',
+    description: '以用户视角评测汽车，数据说话、结论明确',
+    prompt: '你是一位专业的汽车评测作者，拥有丰富的试驾经验和行业知识。\n\n写作要求：\n- 以用户真实体验视角出发，不做广告式吹捧\n- 关键参数（动力、续航、油耗、空间等）必须基于权威平台数据\n- 优缺点对比清晰，结论明确：推荐/不推荐/适合什么人群\n- 语言风格：接地气、有画面感，让读者仿佛身临其境\n- 适当加入竞品对比，帮助读者做决策\n- 价格信息一律标注"以官方公布为准"，不编造数字'
+  },
+  {
+    name: '幽默段子手',
+    category: '生活',
+    description: '轻松幽默的写作风格，适合生活类/趣味类内容',
+    prompt: '你是一位幽默风趣的公众号作者，擅长把严肃的话题写得有趣好读。\n\n写作要求：\n- 语言风格：口语化、接地气，像在跟朋友聊天\n- 多用比喻、类比和谐音梗，但不过度\n- 每段都要有"梗"或"金句"，让读者会心一笑\n- 文章节奏快，不拖泥带水\n- 幽默但不低俗，有趣但不失信息量\n- 结尾用一句精辟的总结收束，让人印象深刻'
+  },
+  {
+    name: '情感共鸣',
+    category: '情感',
+    description: '走心共情的写作风格，引发读者情感共鸣',
+    prompt: '你是一位擅长情感写作的公众号作者，文字有温度、有共鸣。\n\n写作要求：\n- 从普通人的生活场景切入，让读者有代入感\n- 语言温柔但有力，不说教、不煽情过度\n- 善用细节描写：一个动作、一句话、一个眼神\n- 文章节奏：先讲故事 → 再说感受 → 最后升华\n- 结尾给读者力量或思考，不强行灌鸡汤\n- 避免假大空的情感宣泄，每份情感都要有具体支撑'
+  },
+  {
+    name: '硬核科普',
+    category: '科普',
+    description: '专业硬核的科普风格，深入浅出、逻辑严密',
+    prompt: '你是一位优秀的科普作者，擅长把复杂的知识讲得通俗易懂。\n\n写作要求：\n- 先说结论/现象，再解释原理，最后联系实际\n- 善用生活化的类比解释专业概念\n- 逻辑严密：每个结论都有依据，不跳跃推理\n- 语言风格：简洁有力，不啰嗦\n- 适当加入"冷知识"增加趣味性\n- 对专业术语首次出现时给出简短解释'
+  }
+];
+
+var allSkills = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('href') === currentPage) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  renderTemplates();
+  loadSkills();
+});
+
+function renderTemplates() {
+  var container = document.getElementById('template-chips');
+  container.innerHTML = SKILL_TEMPLATES.map(function(t) {
+    return '<div class="template-chip" onclick="useTemplate(\'' + t.name.replace(/'/g, "\\'") + '\')">⚡ ' + t.name + '</div>';
+  }).join('');
+}
+
+function useTemplate(name) {
+  var tpl = SKILL_TEMPLATES.find(function(t) { return t.name === name; });
+  if (!tpl) return;
+  document.getElementById('skill-modal-title').textContent = '新建写作技能';
+  document.getElementById('skill-id').value = '';
+  document.getElementById('skill-name').value = tpl.name;
+  document.getElementById('skill-category').value = tpl.category;
+  document.getElementById('skill-description').value = tpl.description;
+  document.getElementById('skill-prompt').value = tpl.prompt;
+  openModal('skill-modal');
+}
+
+async function loadSkills() {
+  try {
+    var res = await fetch('/api/skills');
+    var data = await res.json();
+    if (data.ok) {
+      allSkills = data.skills || [];
+      renderSkills();
+    }
+  } catch (e) {
+    toast('加载技能列表失败: ' + e.message, 'error');
+  }
+}
+
+function renderSkills() {
+  var container = document.getElementById('skill-list-container');
+  if (!allSkills.length) {
+    container.innerHTML = '<div class="skill-empty"><div class="icon">🎯</div><div>暂无写作技能，点击「新建技能」创建第一个</div></div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="skill-grid">' + allSkills.map(function(s) {
+    var promptPreview = (s.prompt_content || '').substring(0, 200);
+    var activeClass = s.is_active ? '' : 'inactive';
+    var statusDot = s.is_active ? 'dot-green' : 'dot-gray';
+    var statusText = s.is_active ? '已启用' : '已禁用';
+    return '<div class="skill-card ' + activeClass + '">'
+      + '<div class="skill-card-header">'
+      +   '<h3 class="skill-name">' + escapeHtml(s.name) + '</h3>'
+      +   '<span class="skill-category">' + escapeHtml(s.category || '通用') + '</span>'
+      + '</div>'
+      + '<div class="skill-desc">' + escapeHtml(s.description || '暂无描述') + '</div>'
+      + '<div class="skill-prompt-preview">' + escapeHtml(promptPreview) + '</div>'
+      + '<div class="skill-card-footer">'
+      +   '<div class="skill-status" onclick="toggleSkill(' + s.id + ', ' + (s.is_active ? 0 : 1) + ')">'
+      +     '<span class="dot ' + statusDot + '"></span>'
+      +     '<span>' + statusText + '</span>'
+      +   '</div>'
+      +   '<div class="skill-actions">'
+      +     '<button class="btn btn-sm btn-secondary" onclick="editSkill(' + s.id + ')">编辑</button>'
+      +     '<button class="btn btn-sm btn-secondary" style="color:#e74c3c;" onclick="confirmDelete(' + s.id + ', \'' + escapeHtml(s.name).replace(/'/g, "\\'") + '\')">删除</button>'
+      +   '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('') + '</div>';
+}
+
+function openSkillModal() {
+  document.getElementById('skill-modal-title').textContent = '新建写作技能';
+  document.getElementById('skill-id').value = '';
+  document.getElementById('skill-name').value = '';
+  document.getElementById('skill-category').value = '通用';
+  document.getElementById('skill-description').value = '';
+  document.getElementById('skill-prompt').value = '';
+  openModal('skill-modal');
+}
+
+function editSkill(id) {
+  var skill = allSkills.find(function(s) { return s.id === id; });
+  if (!skill) return;
+  document.getElementById('skill-modal-title').textContent = '编辑写作技能';
+  document.getElementById('skill-id').value = skill.id;
+  document.getElementById('skill-name').value = skill.name;
+  document.getElementById('skill-category').value = skill.category || '通用';
+  document.getElementById('skill-description').value = skill.description || '';
+  document.getElementById('skill-prompt').value = skill.prompt_content || '';
+  openModal('skill-modal');
+}
+
+async function saveSkill() {
+  var id = document.getElementById('skill-id').value;
+  var name = document.getElementById('skill-name').value.trim();
+  var category = document.getElementById('skill-category').value.trim();
+  var description = document.getElementById('skill-description').value.trim();
+  var prompt = document.getElementById('skill-prompt').value.trim();
+
+  if (!name) { toast('请输入技能名称', 'error'); return; }
+  if (!prompt) { toast('请输入技能提示词', 'error'); return; }
+
+  var payload = { name: name, category: category, description: description, prompt_content: prompt };
+
+  try {
+    var res, data;
+    if (id) {
+      res = await fetch('/api/skills/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    } else {
+      res = await fetch('/api/skills', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    }
+    data = await res.json();
+    if (data.ok) {
+      toast(id ? '技能已更新' : '技能已创建', 'success');
+      closeModal('skill-modal');
+      loadSkills();
+    } else {
+      toast('保存失败: ' + (data.error || ''), 'error');
+    }
+  } catch (e) {
+    toast('保存失败: ' + e.message, 'error');
+  }
+}
+
+async function toggleSkill(id, isActive) {
+  try {
+    var res = await fetch('/api/skills/' + id, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ is_active: isActive })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      toast(isActive ? '技能已启用' : '技能已禁用', 'success');
+      loadSkills();
+    }
+  } catch (e) {
+    toast('操作失败: ' + e.message, 'error');
+  }
+}
+
+function confirmDelete(id, name) {
+  document.getElementById('confirm-message').textContent = '确定要删除技能「' + name + '」吗？此操作不可撤销。';
+  document.getElementById('confirm-ok-btn').onclick = function() {
+    deleteSkill(id);
+    closeModal('confirm-modal');
+  };
+  openModal('confirm-modal');
+}
+
+async function deleteSkill(id) {
+  try {
+    var res = await fetch('/api/skills/' + id, { method: 'DELETE' });
+    var data = await res.json();
+    if (data.ok) {
+      toast('技能已删除', 'success');
+      loadSkills();
+    } else {
+      toast('删除失败: ' + (data.error || ''), 'error');
+    }
+  } catch (e) {
+    toast('删除失败: ' + e.message, 'error');
+  }
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>

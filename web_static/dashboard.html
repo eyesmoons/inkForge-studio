@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工作台 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>InkForge Studio</p>
+    </div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">🏠 工作台</div>
+      <div class="topbar-actions">
+        <!-- 账号选择器 -->
+        <select class="form-select" id="account-selector" onchange="onAccountChange()" style="margin-right:12px;min-width:180px;">
+          <option value="">-- 加载中 --</option>
+        </select>
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- 公众号平台 -->
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 顶部：全自动发布入口 + 统计卡片 -->
+      <div class="dash-top-row">
+        <!-- 左侧：全自动发布入口 -->
+        <div class="dash-pipeline-entry">
+          <div class="pipeline-icon-wrap">
+            <span class="pipeline-icon">🚀</span>
+            <span class="pipeline-pulse"></span>
+          </div>
+          <div class="pipeline-text">
+            <div class="pipeline-title">全自动发布</div>
+            <div class="pipeline-desc">选题 → 写稿 → 排版 → 发布，一键完成</div>
+          </div>
+          <button class="btn btn-pipeline" id="dash-auto-btn" onclick="autoRunPipeline()">
+            <span class="btn-pipeline-icon">⚡</span> 开始运行
+          </button>
+          <div class="pipeline-progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" id="dash-progress"></div></div>
+          </div>
+        </div>
+
+        <!-- 右侧统计卡片 -->
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-value" id="stat-total-articles">0</div>
+            <div class="stat-label">📝 文章总数</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-value" id="stat-draft-articles">0</div>
+            <div class="stat-label">📦 草稿箱</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-value" id="stat-published-articles">0</div>
+            <div class="stat-label">✅ 已发布</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-today-articles">0</div>
+            <div class="stat-label">📅 今日新增</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 流水线日志区（默认折叠，运行时自动展开） -->
+      <div class="dash-pipeline-log" id="dash-pipeline-log">
+        <div class="pipeline-log-header" onclick="togglePipelineLog()">
+          <span>📡 运行日志</span>
+          <span class="pipeline-log-toggle" id="pipeline-log-arrow">▾</span>
+        </div>
+        <div class="pipeline-log-body" id="pipeline-log-body" style="display:none;">
+          <div class="log-terminal" id="dash-log" style="max-height:400px;">
+            <span class="log-empty">点击「开始运行」，日志将在这里实时显示...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 工作台 Tab 切换 -->
+      <div class="tab-container">
+        <div class="tab-list">
+          <div class="tab-item active" data-tab="tab-overview" onclick="switchDashTab('tab-overview')">📊 数据概览</div>
+          <div class="tab-item" data-tab="tab-recent" onclick="switchDashTab('tab-recent')">📂 最近文章</div>
+        </div>
+      </div>
+
+      <!-- Tab 1: 数据概览 -->
+      <div class="tab-content active" id="tab-overview">
+        <!-- 图表第一行：趋势图(大) + 状态分布饼图(小) -->
+        <div class="dash-chart-row dash-chart-row-main">
+          <div class="card dash-chart-wide">
+            <div class="card-title">📊 近7天文章趋势</div>
+            <div id="weekly-chart" style="height:260px;"></div>
+          </div>
+          <div class="card dash-chart-narrow">
+            <div class="card-title">📊 文章状态分布</div>
+            <div id="status-pie-chart" style="height:260px;"></div>
+          </div>
+        </div>
+
+        <!-- 图表第二行：发文时段热力图(宽) + 公众号排行(窄) -->
+        <div class="dash-chart-row dash-chart-row-main">
+          <div class="card dash-chart-wide">
+            <div class="card-title">🕐 发文时段分布</div>
+            <div id="heatmap-chart" style="height:200px;"></div>
+          </div>
+          <div class="card dash-chart-narrow">
+            <div class="card-title">🏆 公众号发文排行</div>
+            <div id="account-rank-chart" style="height:200px;"></div>
+          </div>
+        </div>
+
+        <!-- 图表第三行：月度趋势 + 关键词词云 -->
+        <div class="dash-chart-row dash-chart-row-sub">
+          <div class="card">
+            <div class="card-title">📈 月度发文趋势</div>
+            <div id="monthly-chart" style="height:240px;"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">☁️ 标题关键词词云</div>
+            <div id="keyword-cloud-chart" style="height:240px;"></div>
+          </div>
+        </div>
+
+        <!-- 图表第四行：关键词 Top10 + 状态漏斗 -->
+        <div class="dash-chart-row dash-chart-row-sub">
+          <div class="card">
+            <div class="card-title">🔑 近7天热门关键词 Top10</div>
+            <div id="keyword-chart" style="height:240px;"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🔽 文章状态漏斗</div>
+            <div id="status-funnel" style="height:240px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: 最近文章 -->
+      <div class="tab-content" id="tab-recent">
+        <!-- 快捷操作 -->
+        <div class="dash-recent-actions">
+          <a href="/topics.html" class="btn btn-secondary"><span>🔍</span> 自动选题</a>
+          <a href="/write.html" class="btn btn-secondary"><span>✍️</span> AI 写稿</a>
+          <a href="/import.html" class="btn btn-secondary"><span>⚡</span> 一键排版</a>
+          <a href="/history.html" class="btn btn-secondary"><span>📂</span> 全部文章</a>
+        </div>
+        <div id="recent-articles-list" class="dash-recent-list">
+          <div class="dash-recent-empty">加载中...</div>
+        </div>
+      </div>
+
+      <!-- 实时日志（隐藏的原有日志框，保留以兼容） -->
+      <div class="card" id="sse-log-card" style="display:none;">
+        <div class="card-title">
+          <span>📡 实时操作日志</span>
+          <button class="btn btn-text" onclick="clearSSELog()">清空</button>
+        </div>
+        <div class="log-box" id="sse-log-box" style="height:200px;">
+          <div class="log-entry log-info">等待操作...</div>
+        </div>
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<!-- 模态框：文章预览 -->
+<div class="modal-overlay" id="article-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">文章预览</div>
+      <button class="btn-close" onclick="closeModal('article-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="article-preview-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('article-modal')">关闭</button>
+      <button class="btn btn-primary" onclick="publishPreviewedArticle()">📤 发布到公众号</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框：确认对话框 -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">确认</div>
+      <button class="btn-close" onclick="closeModal('confirm-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message">确定要执行此操作吗？</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('confirm-modal')">取消</button>
+      <button class="btn btn-primary" id="confirm-ok-btn">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/web_static/dash_charts.js"></script>
+<script>
+// ── Tab 切换 ──
+function switchDashTab(tabId) {
+  document.querySelectorAll('#tab-overview, #tab-recent').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelectorAll('.tab-item[data-tab]').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.getElementById(tabId).classList.add('active');
+  document.querySelector(`.tab-item[data-tab="${tabId}"]`).classList.add('active');
+}
+
+// ── 流水线日志折叠/展开 ──
+function togglePipelineLog() {
+  const body = document.getElementById('pipeline-log-body');
+  const arrow = document.getElementById('pipeline-log-arrow');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    arrow.textContent = '▴';
+  } else {
+    body.style.display = 'none';
+    arrow.textContent = '▾';
+  }
+}
+
+// 运行流水线时自动展开日志
+const _origAutoRun = autoRunPipeline;
+autoRunPipeline = function(noCache) {
+  const body = document.getElementById('pipeline-log-body');
+  const arrow = document.getElementById('pipeline-log-arrow');
+  if (body) { body.style.display = 'block'; }
+  if (arrow) { arrow.textContent = '▴'; }
+  _origAutoRun(noCache);
+};
+
+// ── 最近文章加载 ──
+async function loadRecentArticles() {
+  const container = document.getElementById('recent-articles-list');
+  if (!container) return;
+  try {
+    const res = await fetch('/api/articles?page=1&page_size=10');
+    const data = await res.json();
+    const articles = data.articles || [];
+    if (!articles.length) {
+      container.innerHTML = '<div class="dash-recent-empty">暂无文章，去写一篇吧 ✍️</div>';
+      return;
+    }
+    let html = '';
+    articles.forEach(art => {
+      const title = art.title || '无标题';
+      const status = art.status || 'draft';
+      const statusText = status === 'published' ? '已发布' : status === 'draft' ? '草稿' : '未发布';
+      const statusCls = status === 'published' ? 'status-published' : status === 'draft' ? 'status-draft' : 'status-unpublished';
+      const accountName = art.account_name || '未知';
+      const createdAt = art.created_at ? art.created_at.slice(0, 16).replace('T', ' ') : '';
+      const filePath = art.file_path ? encodeURIComponent(art.file_path) : '';
+      html += `
+        <div class="dash-recent-item" onclick="previewArticle('${filePath}','${art.account_id || ''}')">
+          <div class="dash-recent-info">
+            <div class="dash-recent-title">${title}</div>
+            <div class="dash-recent-meta">
+              <span class="status-badge ${statusCls}">${statusText}</span>
+              <span>${accountName}</span>
+              <span>${createdAt}</span>
+            </div>
+          </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+  } catch (e) {
+    console.error('加载最近文章失败:', e);
+    container.innerHTML = '<div class="dash-recent-empty">加载失败，请重试</div>';
+  }
+}
+
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    if (item.getAttribute("href") === currentPage) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  loadDashStats();
+  loadAccounts();
+  loadRecentArticles();
+  startSSE();
+});
+</script>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "sessions": {
+    "0f16cdf99581469c9bb4f2cd077d5ce7": [
+      {
+        "expertId": "SeniorDeveloper",
+        "name": "Will",
+        "profession": "高级开发工程师",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/02-Engineering/SeniorDeveloper/SeniorDeveloper.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/02-Engineering/SeniorDeveloper/SeniorDeveloper_zh.md",
+        "usedAt": 1775906751350,
+        "industryId": "all"
+      }
+    ],
+    "56c2c648e9624c00b4f6d06ecdbefc82": [
+      {
+        "expertId": "WechatOfficialAccountExpert",
+        "name": "号运运",
+        "profession": "微信公众号运营专家",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/03-Marketing/WechatOfficialAccountExpert/WechatOfficialAccountExpert.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/03-Marketing/WechatOfficialAccountExpert/WechatOfficialAccountExpert_zh.md",
+        "usedAt": 1776602657686,
+        "industryId": "all"
+      }
+    ]
+  },
+  "lastUpdated": 1776654571085
+}

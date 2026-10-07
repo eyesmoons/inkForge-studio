@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一键排版 · 墨锻工坊</title>
+<link rel="stylesheet" href="/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📱</div>
+      <h1>墨锻工坊</h1>
+      <p>InkForge Studio</p>
+    </div>
+        <nav class="nav">
+      <div class="nav-group-label">核心流程</div>
+      <a href="/dashboard.html" class="nav-item" data-title="工作台"><span class="icon">🏠</span> 工作台</a>
+      <a href="/topics.html" class="nav-item" data-title="自动选题"><span class="icon">🔍</span> 自动选题</a>
+      <a href="/write.html" class="nav-item" data-title="一键写稿"><span class="icon">✍️</span> 一键写稿</a>
+      <a href="/rewrite.html" class="nav-item" data-title="链接改写"><span class="icon">🔄</span> 链接改写</a>
+      <a href="/import.html" class="nav-item" data-title="一键排版"><span class="icon">📋</span> 一键排版</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">灵感发现</div>
+      <a href="/hotrank.html" class="nav-item" data-title="每日热搜"><span class="icon">🔥</span> 每日热搜</a>
+      <a href="/today_in_history.html" class="nav-item" data-title="历史上的今天"><span class="icon">📅</span> 历史上的今天</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">资源管理</div>
+      <a href="/cover_maker.html" class="nav-item" data-title="封面制作"><span class="icon">🎨</span> 封面制作</a>
+      <a href="/material_library.html" class="nav-item" data-title="素材库"><span class="icon">📦</span> 素材库</a>
+      <a href="/skill.html" class="nav-item" data-title="写作技能"><span class="icon">🎯</span> 写作技能</a>
+      <a href="/history.html" class="nav-item" data-title="历史文章"><span class="icon">📂</span> 历史文章</a>
+      <div class="nav-divider"></div>
+      <div class="nav-group-label">系统</div>
+      <a href="/schedule.html" class="nav-item" data-title="定时任务"><span class="icon">⏰</span> 定时任务</a>
+      <a href="/config.html" class="nav-item" data-title="系统配置"><span class="icon">⚙️</span> 系统配置</a>
+      <a href="/profile.html" class="nav-item" data-title="个人中心"><span class="icon">👤</span> 个人中心</a>
+    </nav>
+    <div class="sidebar-footer-area">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="toggle-arrow">◀</span>
+        <span class="sidebar-collapse-text">收起菜单</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">📋 一键排版</div>
+      <div class="topbar-actions">
+        <!-- 账号选择器 -->
+        <select class="form-select" id="account-selector" onchange="onAccountChange()" style="margin-right:12px;min-width:180px;">
+          <option value="">-- 加载中 --</option>
+        </select>
+        <span id="status-dot" class="dot dot-green"></span>
+        <span id="status-text" style="font-size:12px;color:var(--text2)">就绪</span>
+        <!-- 公众号平台 -->
+        <a class="wx-platform-btn" href="https://mp.weixin.qq.com" target="_blank" title="打开公众号平台">🔗 公众号平台</a>
+        <!-- AI助手按钮 -->
+        <div class="ai-assistant-btn" id="ai-assistant-btn" onclick="toggleAIAssistant()" title="AI助手">
+          <span>🤖</span>
+        </div>
+        <!-- 用户菜单 -->
+        <div class="user-menu" id="user-menu" onclick="toggleUserMenu()">
+          <div class="user-avatar" id="user-avatar">U</div>
+          <div class="user-name" id="user-name">用户</div>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-item" onclick="showUserProfile()">
+              <span>👤</span> 个人中心
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <div class="user-dropdown-item" onclick="doLogout()">
+              <span>🚪</span> 退出登录
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 顶部：粘贴区域 + 操作按钮 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">📋 一键排版</div>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:16px;">
+          从其他网站或文档复制文章内容，自动识别标题、小标题和正文，AI 智能排版后一键推送到微信公众号草稿箱。
+        </p>
+
+        <div style="margin-bottom:16px;">
+          <label class="form-label">粘贴文章内容</label>
+          <textarea id="import-source" class="form-input" style="width:100%;min-height:200px;" rows="10" placeholder="粘贴文章内容，系统会自动识别：
+• 第一行作为主标题
+• 以「第X章」「第一章」「###」「##」等开头的作为小标题
+• 其他内容作为正文"></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="parseImportedArticle()">✨ 解析文章</button>
+      </div>
+
+      <!-- 解析结果区域（包含标题、编辑器、预览、操作按钮） -->
+      <div class="card" id="import-result-card" style="display:none;">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>📝 解析结果</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
+              <input type="text" id="import-ending" placeholder="结尾词（可选）" style="padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text);width:140px;font-size:12px;">
+              <label style="display:flex;align-items:center;gap:3px;white-space:nowrap;cursor:pointer;">
+                <input type="checkbox" id="import-no-ending" style="margin:0;">
+                不加
+              </label>
+            </div>
+            <button class="btn btn-sm btn-primary" id="ai-format-btn" onclick="aiFormatArticle()">🤖 AI 排版优化</button>
+            <button class="btn btn-sm btn-blue" onclick="publishImportedArticle()">📤 推送到草稿箱</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="form-label">标题（可修改）</label>
+          <input type="text" class="form-input" id="import-title" placeholder="文章标题" style="width:100%;">
+        </div>
+
+        <!-- 左右分栏 -->
+        <div class="editor-layout" style="height:600px;">
+          <!-- 左侧：Markdown 编辑器 -->
+          <div class="editor-panel">
+            <div class="panel-header">
+              ✍️ Markdown 编辑器
+              <button class="btn btn-sm btn-secondary" onclick="clearImportEditor()">清空</button>
+            </div>
+            <textarea id="import-markdown" class="editor-textarea" style="border:none;outline:none;resize:none;background:transparent;color:var(--text);font-family:inherit;font-size:14px;line-height:1.6;padding:16px;" placeholder="在这里编辑 Markdown 内容..."></textarea>
+          </div>
+
+          <!-- 右侧：排版预览 -->
+          <div class="preview-panel">
+            <div class="panel-header" style="flex-wrap:wrap;gap:8px 12px;">
+              <span style="white-space:nowrap;">👁 微信预览</span>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <select id="import-template" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:13px;" onchange="previewImportMarkdown()">
+                  <option value="">模板</option>
+                  <option value="classic">经典</option>
+                  <option value="magazine">杂志</option>
+                  <option value="tech">科技</option>
+                  <option value="minimal">极简</option>
+                  <option value="notebook">笔记</option>
+                </select>
+                <select id="import-theme" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:13px;" onchange="previewImportMarkdown()">
+                  <option value="blue">蓝色</option>
+                  <option value="green">绿色</option>
+                  <option value="warm">暖色</option>
+                  <option value="dark">暗黑</option>
+                </select>
+                <button class="btn btn-sm btn-secondary" onclick="previewImportMarkdown()" title="刷新预览">🔄 刷新</button>
+                <button class="btn btn-sm btn-secondary" onclick="copyImportHtml()" title="复制 HTML">📋 复制</button>
+                <button class="btn btn-sm btn-secondary" onclick="openImportPreviewInTab()" title="在新窗口打开预览">🪟 新窗口</button>
+              </div>
+            </div>
+            <div id="import-preview" style="flex:1;overflow:auto;padding:16px;background:#fff;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 排版日志 -->
+      <div class="card" id="import-format-log-card" style="display:none;">
+        <div class="card-title">📡 AI 排版日志</div>
+        <div class="log-box" id="import-format-log"></div>
+      </div>
+
+      <!-- 推送日志 -->
+      <div class="card" id="import-log-card" style="display:none;">
+        <div class="card-title">📡 推送日志</div>
+        <div class="log-box" id="import-log"></div>
+      </div>
+    </div>  <!-- /content -->
+  </div>  <!-- /main -->
+</div>  <!-- /layout -->
+
+<!-- 模态框：文章预览 -->
+<div class="modal-overlay" id="article-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">文章预览</div>
+      <button class="btn-close" onclick="closeModal('article-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="article-preview-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('article-modal')">关闭</button>
+      <button class="btn btn-primary" onclick="publishPreviewedArticle()">📤 发布到公众号</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模态框：确认对话框 -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">确认</div>
+      <button class="btn-close" onclick="closeModal('confirm-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message">确定要执行此操作吗？</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('confirm-modal')">取消</button>
+      <button class="btn btn-primary" id="confirm-ok-btn">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script>
+// 页面初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 高亮当前导航项
+  const currentPage = window.location.pathname;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    if (item.getAttribute("href") === currentPage) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  loadAccounts();
+  startSSE();
+});
+</script>
+
+<!-- 通知 -->
+<div class="toast" id="toast"></div>
+
+</body>
+</html>
