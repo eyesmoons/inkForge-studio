@@ -232,9 +232,6 @@ CLAUDE.md
 build_log.txt
 WeChatPublisher.spec
 WeChatPublisher_mac.spec
-# >>> Comet managed project state >>>
-!/.comet/
-/.comet/*
-!/.comet/config.yaml
-# <<< Comet managed project state <<<
 output
+.agents
+.opencode
