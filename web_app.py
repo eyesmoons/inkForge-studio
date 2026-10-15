@@ -1,6 +1,6 @@
 """
 web_app.py
-微信公众号自动化发布系统 — Web 可视化管理界面（Flask 后端）
+墨锻工坊 — Web 可视化管理界面
 
 启动方式：
   python web_app.py
@@ -407,7 +407,7 @@ def _apply_user_schedule(user_id: int, task: dict):
             replace_existing=True,
             misfire_grace_time=600,
         )
-        
+
         # 获取刚添加的 job 信息
         try:
             job = _scheduler.get_job(job_id)
@@ -488,13 +488,13 @@ def _init_scheduler():
                 _apply_user_schedule(task["user_id"], task)
 
         print(f"[Scheduler] APScheduler 启动成功，已加载 {len(tasks)} 个定时任务")
-        
+
         # 打印当前调度器中的所有 job
         jobs = _scheduler.get_jobs()
         print(f"[Scheduler] 当前调度器中的任务列表：")
         for job in jobs:
             print(f"[Scheduler]   - Job ID: {job.id}, 下次执行: {job.next_run_time}")
-            
+
     except Exception as e:
         import traceback
         print(f"[Scheduler] ❌ 启动失败：{e}")
@@ -3266,28 +3266,28 @@ def api_today_in_history():
 def api_ai_assistant_chat():
     """AI 助手对话接口"""
     from modules.ai_assistant import quick_chat, add_to_history
-    
+
     session_id = _get_session_id()
     user = get_current_user(session_id)
     if not user:
         return jsonify({"ok": False, "error": "请先登录"}), 401
-    
+
     data = request.get_json() or {}
     message = data.get("message", "").strip()
     mode = data.get("mode", "chat")
-    
+
     if not message:
         return jsonify({"ok": False, "error": "消息不能为空"}), 400
-    
+
     try:
         # 传递 user_id 以读取数据库中的 AI 配置
         result = quick_chat(message, mode=mode, user_id=user["id"])
-        
+
         if result.get("ok"):
             # 保存到历史
             add_to_history(session_id, "user", message)
             add_to_history(session_id, "assistant", result.get("content", ""))
-        
+
         return jsonify(result)
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -3297,10 +3297,10 @@ def api_ai_assistant_chat():
 def api_ai_assistant_clear():
     """清空对话历史"""
     from modules.ai_assistant import clear_history
-    
+
     session_id = _get_session_id() or "anonymous"
     clear_history(session_id)
-    
+
     return jsonify({"ok": True})
 
 
@@ -3977,7 +3977,7 @@ def api_document_rewrite():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5678))
-    print(f"\n🚀 微信公众号管理界面启动中...")
+    print(f"\n🚀 墨锻工坊系统启动中...")
     print(f"   打开浏览器访问：http://localhost:{port}\n")
 
     # 初始化默认用户

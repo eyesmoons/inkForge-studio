@@ -1,5 +1,5 @@
 """
-launcher.py — 微信公众号自动发布系统 macOS App 启动入口（增强版）
+launcher.py — 墨锻工坊 macOS App 启动入口（增强版）
 
 打包为 .app 后：
 1. 启动 Flask 服务（localhost:5678）
@@ -107,7 +107,7 @@ def run_flask():
 
 
 if __name__ == '__main__':
-    print(f"[INFO] 启动微信公众号发布助手")
+    print(f"[INFO] 启动墨锻工坊")
     print(f"[INFO] 数据目录: {DATA_DIR}")
     print(f"[INFO] 日志目录: {LOG_DIR}")
     print(f"[INFO] 工作目录: {BASE_DIR}")

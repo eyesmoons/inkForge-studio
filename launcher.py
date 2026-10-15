@@ -1,5 +1,5 @@
 """
-launcher.py — 微信公众号自动发布系统 macOS App 启动入口
+launcher.py — 墨锻工坊 macOS App 启动入口
 
 打包为 .app 后：
 1. 启动 Flask 服务（localhost:5678）

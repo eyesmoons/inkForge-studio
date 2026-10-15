@@ -66,6 +66,16 @@
 
 ## 二、快速开始（3步上手）
 
+### 准备工作
+```shell
+# 创建虚拟环境（python版本 >= 3.12）
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 安装依赖
+pip install -r requirements.txt
+```
+
 ### 第1步：启停系统
 
 #### macOS / Linux

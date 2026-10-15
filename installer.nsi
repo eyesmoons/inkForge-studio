@@ -6,7 +6,7 @@
 
 ; ── App Info ────────────────────────────────────────────────
 !define APP_NAME "WeChatPublisher"
-!define APP_DISPLAY "微信公众号发布助手"
+!define APP_DISPLAY "墨锻工坊"
 !define APP_VERSION "1.0.0"
 !define APP_EXE "WeChatPublisher.exe"
 !define APP_ICON "AppIcon.ico"
@@ -42,7 +42,7 @@ VIAddVersionKey "LegalCopyright" "Copyright 2026"
 !insertmacro MUI_PAGE_INSTFILES
 
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXE}"
-!define MUI_FINISHPAGE_RUN_TEXT "启动微信公众号发布助手"
+!define MUI_FINISHPAGE_RUN_TEXT "启动墨锻工坊"
 !insertmacro MUI_PAGE_FINISH
 
 ; ── Uninstaller Pages ──────────────────────────────────────
@@ -97,7 +97,7 @@ SectionEnd
 
 ; ── Section Descriptions ───────────────────────────────────
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "安装微信公众号发布助手主程序（必选）"
+    !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "安装墨锻工坊主程序（必选）"
     !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "在开始菜单中创建快捷方式"
     !insertmacro MUI_DESCRIPTION_TEXT ${SEC03} "在桌面创建快捷方式"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

@@ -1,6 +1,6 @@
 """
 main.py
-微信公众号自动化发布系统 — 主流程入口
+墨锻工坊 — 主流程入口
 
 用法：
   python main.py article.md                    # 发布已有 Markdown 文章
@@ -23,7 +23,7 @@ main.py
     → 联网搜索选题（auto_selector）
     → AI 生成文章（ai_writer）
     → 关键词提取（keyword_extractor）
-    → MD 转微信 HTML（md_converter）
+    → MD 转 HTML（md_converter）
     → 封面生成（cover_generator）
     → 推送微信草稿（wx_publisher）
 """
@@ -100,7 +100,7 @@ def interactive_set_prompt():
     print("═" * 60)
     print("\n💡 说明：系统会使用 AI 大模型根据你的提示词直接生成选题，无需手动设置搜索关键词。")
     print("   当 AI 不可用时，会自动降级到传统爬虫 + 搜索方式。\n")
-    
+
     print("\n【当前提示词】（直接回车保留原值）：")
     print(cfg["topic_prompt"])
     print()
@@ -801,7 +801,7 @@ article = ai_writer.generate(topic="AI 趋势", style="深度")
 
 def main():
     parser = argparse.ArgumentParser(
-        description="微信公众号自动化发布系统",
+        description="墨锻工坊",
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="""
 示例：

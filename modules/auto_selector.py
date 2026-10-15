@@ -1005,7 +1005,7 @@ def generate_topics(
                 t["_source"] = "ai_fallback"
                 t["_ai_generated"] = True
             # 对AI生成的选题进行评分排序
-            ai_topics = ai_enhance_topics(ai_topics, prompt, domain, max_to_score=len(ai_topics))
+            ai_topics = ai_enhance_topics(ai_topics, prompt, domain, max_to_score=len(ai_topics), user_id=user_id)
             return ai_topics
 
     # 全局去重
@@ -1054,7 +1054,7 @@ def generate_topics(
         return []
 
     # ── Step 4：AI 打分排序 ──────────────────────────────
-    topics = ai_enhance_topics(topics, prompt, domain, max_to_score=8)
+    topics = ai_enhance_topics(topics, prompt, domain, max_to_score=8, user_id=user_id)
 
     # 写缓存
     with open(cache_file, "w", encoding="utf-8") as f:
@@ -2067,15 +2067,15 @@ def _ai_score_topic(topic: Dict, prompt: str, backend: str, config: dict) -> flo
         return 0.0
 
 
-def ai_enhance_topics(topics: List[Dict], prompt: str, domain: str = "", max_to_score: int = 8) -> List[Dict]:
+def ai_enhance_topics(topics: List[Dict], prompt: str, domain: str = "", max_to_score: int = 8, user_id: int = None) -> List[Dict]:
     """
     对选题列表进行 AI 增强：打分、排序、添加推荐理由。
     """
     if not topics:
         return topics
 
-    # 检测 LLM
-    backend, config = _detect_llm_backend()
+    # 检测 LLM（必须传 user_id，否则会回退到 config.json 的占位 key 导致 401）
+    backend, config = _detect_llm_backend(user_id)
     if backend == "template":
         print("   ⚠️  未检测到可用 LLM，跳过 AI 选题增强")
         return topics

@@ -1,5 +1,5 @@
 #!/bin/bash
-# 启动微信公众号管理界面
+# 启动墨锻工坊管理界面
 cd "$(dirname "$0")"
 
 PYTHON=".venv/bin/python3"

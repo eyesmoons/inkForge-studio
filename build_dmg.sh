@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================
-# build_dmg.sh — 微信公众号发布助手 macOS .dmg 打包脚本
+# build_dmg.sh — 墨锻工坊 macOS .dmg 打包脚本
 # 适用平台：macOS Apple Silicon (arm64)
 # 运行方式：cd wechat-publisher && bash build_dmg.sh
 # =============================================================
@@ -9,14 +9,14 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-APP_NAME="微信公众号发布助手"
-DMG_NAME="WeChatPublisher-1.0.0-arm64"
+APP_NAME="墨锻工坊"
+DMG_NAME="inkForge-studio-1.0.0-arm64"
 VENV_PY="$SCRIPT_DIR/.venv/bin/python"
 VENV_PIP="$SCRIPT_DIR/.venv/bin/pip"
 PYINSTALLER="$SCRIPT_DIR/.venv/bin/pyinstaller"
 
 echo "======================================================"
-echo "  微信公众号发布助手 — macOS 打包脚本"
+echo "  墨锻工坊 — macOS 打包脚本"
 echo "======================================================"
 
 # ── Step 1: 检查/创建虚拟环境 ─────────────────────────────────

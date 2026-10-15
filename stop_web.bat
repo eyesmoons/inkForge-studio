@@ -1,5 +1,5 @@
 @echo off
-REM 停止微信公众号自动化发布系统 Web 服务
+REM 停止墨锻工坊自动化发布系统 Web 服务
 REM 支持 Windows
 
 echo 🛑 正在停止 Web 服务...

@@ -237,3 +237,4 @@ WeChatPublisher_mac.spec
 /.comet/*
 !/.comet/config.yaml
 # <<< Comet managed project state <<<
+output

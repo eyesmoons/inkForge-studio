@@ -18,7 +18,7 @@ bash build_dmg.sh
 ### 用户安装方式
 
 1. 双击 `WeChatPublisher-1.0.0-arm64.dmg`
-2. 将「微信公众号发布助手」拖入右侧 **Applications** 文件夹
+2. 将「墨锻工坊」拖入右侧 **Applications** 文件夹
 3. **首次打开**：右键 → 打开（绕过 Gatekeeper）
 4. 浏览器自动打开 `http://localhost:5678`
 
@@ -95,7 +95,7 @@ build_installer.bat
 编辑 `build_dmg.sh` 开头：
 
 ```bash
-APP_NAME="微信公众号发布助手"
+APP_NAME="墨锻工坊"
 DMG_NAME="WeChatPublisher-1.0.0-arm64"
 ```
 
@@ -104,6 +104,6 @@ DMG_NAME="WeChatPublisher-1.0.0-arm64"
 编辑 `build_exe.bat` 或 `build_installer.bat` 开头：
 
 ```batch
-set APP_NAME=微信公众号发布助手
+set APP_NAME=墨锻工坊
 set APP_VERSION=1.0.0
 ```
